@@ -1,0 +1,61 @@
+# Technical Note — EDXSO LinkedIn School Influencer Discovery Tool
+
+## 1. Architecture Overview
+The application executes a low-latency 6-stage pipeline (`src/pipeline.py`) exposed via both a CLI (`src/cli.py`) and a Streamlit UI (`app.py`):
+
+1. **Stage 1 — Phrase Input (`src/stage1_input.py`)**: Normalizes whitespace and validates the user's topic phrase (default: `"K12 B2B Sales"`).
+2. **Stage 2 — Post Discovery (`src/stage2_discovery.py`)**: Discovers 5 recent relevant LinkedIn posts across three compliant modes (`live_api`, `supplied_urls`, `test_dataset`), decoding exact UTC dates (`YYYY-MM-DD`) from LinkedIn's 64-bit Snowflake activity IDs (`activity_id >> 22`). In `live_api` mode, concurrent **Serper.dev** queries resolve public LinkedIn post URLs in `~1–3s`, falling back automatically to cookie-less `apify~google-search-scraper` if needed.
+3. **Stage 3 — Commenter Extraction & Deduplication (`src/stage3_extraction.py`)**: Extracts public top-level commenters (`scrapeReplies=false`, bounded by `MAX_COMMENTS_PER_POST=40`), normalizes LinkedIn `/in/` profile URLs (stripping query params, trailing slashes, and normalizing path case), and groups engaged posts per person (`DeduplicatedCommenter.commented_posts`).
+4. **Stage 4 — AI Analysis (`src/stage4_ai_analysis.py`)**: Concurrently processes uncached commenters (`ThreadPoolExecutor`, `ANALYSIS_BATCH_SIZE=12`, `ANALYSIS_MAX_WORKERS=3`) using a compact integer-indexed Pydantic schema (`CompactBatchAnalysisResponse`) across **Groq** (`openai/gpt-oss-120b` → `openai/gpt-oss-20b` → `qwen/qwen3.8-27b`) with automatic **Gemini Flash-Lite** fallback (`gemini-3.5-flash-lite` → `gemini-3.1-flash-lite`).
+5. **Stage 5 — Hybrid Semantic Ranking (`src/stage5_ranking.py`)**: Embeds candidate profiles in a single batch (`EMBEDDING_BATCH_SIZE=100`) using `gemini-embedding-001` (768-d, L2-normalized) against the cached embedding of EDXSO's target persona (`data/target_persona.txt`), combining dense semantic similarity, LLM contextual classification, and multi-post engagement frequency.
+6. **Stage 6 — Results & Traceable Export (`src/stage6_export.py`)**: Generates interactive tables/expanders, runtime breakdown metrics, CRM-ready CSV (`commented_post_urls`, `commented_post_authors`, `comment_snippets`), and full nested JSON exports.
+
+---
+
+## 2. Compliant Data Retrieval Approach & Production Path
+### Why Direct LinkedIn API Search Is Not Used
+LinkedIn does not offer a public REST API endpoint for arbitrary keyword-based post search or reading third-party post comment threads without explicit organization-admin OAuth scopes. Bypassing LinkedIn's authentication wall, cookies, or rate limits violates LinkedIn's User Agreement and project constraints.
+
+### Implemented Compliant Paths
+- **`live_api` mode**:
+  - *Post Discovery*: Queries public Google search indices via **Serper.dev** (exact + broad queries in parallel), with automatic fallback to Apify's cookie-less `apify~google-search-scraper` actor and `?waitForFinish=60` long-polling (`src/apify_client.py`).
+  - *Comment Extraction*: Uses the cookie-less `harvestapi~linkedin-post-comments` Apify actor (`scrapeReplies=false`) to retrieve publicly visible top-level comments per post without any LinkedIn session cookie or login credentials.
+- **`supplied_urls` mode**: Accepts up to 5 user-curated LinkedIn post URLs directly and runs Stages 3–6 on those posts.
+- **`test_dataset` mode**: Uses the clearly labelled offline fixture (`data/sample_dataset.json`) for deterministic demos without scraping costs.
+- **Local TTL Caching (`src/cache.py`)**: Caches SERP results, extracted post comments, per-profile AI extraction, and static persona embeddings (disable anytime via `--no-cache` or the UI toggle).
+
+### Path to Production
+In production for EDXSO, Stage 2 and Stage 3 would connect to a licensed enterprise social-intelligence / B2B data provider (or official LinkedIn Community Management / Marketing Developer Partner APIs where authorized for partner-owned pages), paired with webhook-based CRM sync and automated PII retention expiry.
+
+---
+
+## 3. AI/ML Method & Hybrid Ranking Logic
+Ranking relies on semantic understanding and LLM reasoning rather than exact keyword matching alone:
+
+1. **Structured LLM Contextual Classification (Weight: 65%)**
+   - Evaluates each commenter's headline, optional location hint, and comment snippets against EDXSO's K12 buyer/influencer persona (former principals, school owners, managing trustees, academic directors, multi-school consultants, edu-entrepreneurs, and decision-maker connectors).
+   - Compact schema enforcement (`CompactBatchAnalysisResponse`) eliminates URL-echo token overhead and enforces `"Not publicly listed"` when role/org/location is absent.
+   - Multi-provider thread-safe routing handles Groq free-tier 8,000 TPM limits (`gpt-oss-120b` → `gpt-oss-20b` → `qwen3.8-27b`) and Gemini `503`/`429` spikes (`gemini-3.5-flash-lite` → `gemini-3.1-flash-lite`), blacklisting daily-exhausted models per run and bisecting malformed batches.
+
+2. **Dense Embedding Semantic Similarity (Weight: 35%)**
+   - `gemini-embedding-001` (with `gemini-embedding-2` fallback) encodes `data/target_persona.txt` and each enriched commenter profile into 768-dimensional vectors using `task_type="SEMANTIC_SIMILARITY"`.
+   - Cosine similarity on L2-normalized vectors is clamped to `[0, 1]` and scaled to `[0, 100]`, capturing conceptual alignment even when exact keywords differ.
+
+3. **Multi-Post Engagement Bonus (+0 to +10 points)**
+   - Commenters engaging across multiple posts receive `+5.0` per additional post (capped at `+10.0`).
+
+$$\text{Final Score} = \min\!\left(100,\; 0.35 \times S_{\text{embedding}} + 0.65 \times S_{\text{LLM}} + \min(10,\; 5 \times (\text{posts} - 1))\right)$$
+
+---
+
+## 4. Schemas & Data Governance
+- **Core Schemas (`src/schemas.py`)**: `DiscoveredPost`, `RawComment`, `PostTrace`, `DeduplicatedCommenter`, `ProfileAnalysis`, `RankedInfluencer`, and `PipelineRunResult`.
+- **Data Minimization**: Only outreach-relevant public fields are extracted and exported (`ALLOWED_OUTREACH_FIELDS` in `src/config.py`). Private contact scraping is omitted.
+- **Retention & Consent**: Exports carry UTC timestamps (`generated_at_utc`) and follow a 30-day retention policy (`DATA_RETENTION_DAYS = 30`).
+
+---
+
+## 5. Known Limitations
+1. **Google Search Index Coverage**: Public search engines do not index 100% of recent LinkedIn posts immediately, and posts with zero public comments yield no commenters unless supplied via `supplied_urls`.
+2. **Comment Extraction Latency Floor**: While Serper (`~1–3s`), Groq (`~2–6s`), and single-batch Gemini embeddings (`~2s`) complete in under ~10 seconds combined, Stage 3 (`harvestapi~linkedin-post-comments`) still queries public LinkedIn comment pages dynamically (`~6–28s` depending on post response time), so cold runs depend mainly on Stage 3 network latency.
+3. **Headline-Only Location Availability**: In `short` Apify profile mode (`APIFY_PROFILE_SCRAPER_MODE=short`), location is extracted only when present in the headline/metadata (`Not publicly listed` otherwise).

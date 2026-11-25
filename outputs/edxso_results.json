@@ -1,0 +1,177 @@
+{
+  "search_phrase": "EDXSO",
+  "generated_at_utc": "2026-11-25T13:35:43.433160+00:00",
+  "source_mode": "live_api",
+  "discovery_provider": "Serper.dev",
+  "llm_model_used": "openai/gpt-oss-120b",
+  "total_duration_secs": 16.41,
+  "stage_timings_secs": {
+    "stage1_input": 0.0,
+    "stage2_discovery": 3.98,
+    "stage3_extraction": 9.55,
+    "stage4_ai_analysis": 1.84,
+    "stage5_ranking": 1.03,
+    "stage6_assembly": 0.0
+  },
+  "total_posts": 5,
+  "total_unique_commenters": 3,
+  "posts": [
+    {
+      "post_id": "7480879493239439360",
+      "post_url": "https://www.linkedin.com/posts/atulnischal_edxso-national-impact-activity-7480879493239439360-EG9X",
+      "author_name": "Atulnischal",
+      "published_date": "2026-07-09",
+      "snippet": "Between April and June 2026, the EDXSO team had the privilege of engaging with educators across India.",
+      "source_mode": "live_api"
+    },
+    {
+      "post_id": "7472143436263895040",
+      "post_url": "https://www.linkedin.com/posts/edxso_teacherdevelopment-growthmindset-effectiveteaching-activity-7472143436263895040-YUe0",
+      "author_name": "EDXSO",
+      "published_date": "2026-06-15",
+      "snippet": "Boost Teacher Effectiveness with Peer Review Sessions. View organization page for EDXSO · EDXSO. 1,347 followers. 4mo. Report this post; Close ...",
+      "source_mode": "live_api"
+    },
+    {
+      "post_id": "7469606762547945472",
+      "post_url": "https://www.linkedin.com/posts/edxso_growthstrategies-educationframeworks-institutionalgrowth-activity-7469606762547945472-_hEP",
+      "author_name": "EDXSO",
+      "published_date": "2026-06-08",
+      "snippet": "Try the \"Growth Roadmap\" for educational institutions: 1. Assess current capabilities. 2. Define clear goals. 3. Implement competency-based curricula. 4.",
+      "source_mode": "live_api"
+    },
+    {
+      "post_id": "7467794731994034177",
+      "post_url": "https://www.linkedin.com/posts/edxso_teaching-educationtrends-studentsuccess-activity-7467794731994034177-xBPH",
+      "author_name": "EDXSO",
+      "published_date": "2026-06-03",
+      "snippet": "Competency-based learning is more than a trend; it's essential. This approach allows students to progress at their own pace, ...",
+      "source_mode": "live_api"
+    },
+    {
+      "post_id": "7438259831615967232",
+      "post_url": "https://www.linkedin.com/posts/edxso_schoolleadership-schoolgrowth-edxso-activity-7438259831615967232-0Nyj",
+      "author_name": "Edxso",
+      "published_date": "2026-03-13",
+      "snippet": "EDXSO, will lead a session on 𝗙𝘂𝘁𝘂𝗿𝗲 𝗼𝗳 𝗟𝗲𝗮𝗱𝗲𝗿𝘀𝗵𝗶𝗽, exploring how school leaders can prepare themselves and their institutions",
+      "source_mode": "live_api"
+    }
+  ],
+  "ranked_influencers": [
+    {
+      "rank": 1,
+      "name": "Aditya D.",
+      "profile_url": "https://www.linkedin.com/in/aditya-d-532527138",
+      "current_role": "Education Business Growth Consultant",
+      "organization": "Not publicly listed",
+      "location": "Not publicly listed",
+      "school_ecosystem_indicators": [
+        "Decision-Maker Connector"
+      ],
+      "embedding_similarity": 82.02,
+      "llm_fit_score": 62.0,
+      "engagement_bonus": 0.0,
+      "final_relevance_score": 69.01,
+      "match_explanation": "Headline targets education businesses, likely works with K12 decision‑makers.",
+      "commented_post_count": 1,
+      "commented_posts": [
+        {
+          "post_url": "https://www.linkedin.com/posts/atulnischal_edxso-national-impact-activity-7480879493239439360-EG9X",
+          "post_author": "Atulnischal",
+          "comment_snippet": "One capability stands above the rest for me: the ability to develop self-directed learners.\n \nIn a world where information is instantly accessible through AI, the role of educators is shifting from delivering knowledge to helping students t"
+        }
+      ]
+    },
+    {
+      "rank": 2,
+      "name": "Dr. Pratima Gurung",
+      "profile_url": "https://www.linkedin.com/in/dr-pratima-gurung",
+      "current_role": "Bestselling Author / Mentor",
+      "organization": "Not publicly listed",
+      "location": "Not publicly listed",
+      "school_ecosystem_indicators": [
+        "General / Non-K12 Specific"
+      ],
+      "embedding_similarity": 79.64,
+      "llm_fit_score": 30.0,
+      "engagement_bonus": 0.0,
+      "final_relevance_score": 47.37,
+      "match_explanation": "Focus on LinkedIn mentoring, no evidence of K12 school ties.",
+      "commented_post_count": 1,
+      "commented_posts": [
+        {
+          "post_url": "https://www.linkedin.com/posts/atulnischal_edxso-national-impact-activity-7480879493239439360-EG9X",
+          "post_author": "Atulnischal",
+          "comment_snippet": "Real transformation in education does not happen \nbecause a new policy is announced \n\nor \n\na new technology is launched. \n\nIt happens \nwhen educators choose to learn, reflect, and change.\n\nDr. Atul Nischal, PhD"
+        }
+      ]
+    },
+    {
+      "rank": 3,
+      "name": "Rajendra Pei",
+      "profile_url": "https://www.linkedin.com/in/rajendra-pei-6a093b417",
+      "current_role": "Office Assistant",
+      "organization": "Unilever",
+      "location": "Not publicly listed",
+      "school_ecosystem_indicators": [
+        "General / Non-K12 Specific"
+      ],
+      "embedding_similarity": 74.52,
+      "llm_fit_score": 20.0,
+      "engagement_bonus": 0.0,
+      "final_relevance_score": 39.08,
+      "match_explanation": "Office role at consumer goods firm, no K12 connection.",
+      "commented_post_count": 1,
+      "commented_posts": [
+        {
+          "post_url": "https://www.linkedin.com/posts/atulnischal_edxso-national-impact-activity-7480879493239439360-EG9X",
+          "post_author": "Atulnischal",
+          "comment_snippet": "Well articulated. Reliability is everything in payments."
+        }
+      ]
+    }
+  ],
+  "related_companies": [
+    {
+      "name": "EDXSO",
+      "company_url": "https://in.linkedin.com/company/edxso",
+      "category": "School Network / Provider",
+      "description": "EDXSO is a complete K12 educational solution company that partners with schools to enhance education to global standards of excellence.",
+      "related_contacts": [],
+      "source": "LinkedIn Company Index"
+    },
+    {
+      "name": "Ramjas College - Company",
+      "company_url": "https://in.linkedin.com/company/ramjas-college-cp",
+      "category": "Education Ecosystem",
+      "description": "Website: http://www.ramjascollege.edu. External link for Ramjas College - Company. Industry: Higher Education. Company size: 51-200 employees ...",
+      "related_contacts": [],
+      "source": "LinkedIn Company Index"
+    },
+    {
+      "name": "Edexo",
+      "company_url": "https://in.linkedin.com/company/edexo",
+      "category": "Education Ecosystem",
+      "description": "About us ; Website: http://www.goedexo.com. External link for Edexo ; Industry: Education Management ; Company size: 2-10 employees ; Headquarters: Jammu, Jammu.",
+      "related_contacts": [],
+      "source": "LinkedIn Company Index"
+    },
+    {
+      "name": "Shailers Solutions",
+      "company_url": "https://bo.linkedin.com/company/shailersolutions",
+      "category": "Education Ecosystem",
+      "description": "Shailers Solutions is a Value-Driven IT solution Company which focuses on Web & App development, Digital Marketing and Facial Recognition Technology.",
+      "related_contacts": [],
+      "source": "LinkedIn Company Index"
+    },
+    {
+      "name": "Indian School of Skills",
+      "company_url": "https://in.linkedin.com/company/indian-school-of-skills",
+      "category": "School Network / Provider",
+      "description": "India's first upskilling school with AI first learning approach. UX Design, Data Science, Full-stack Development, Cyber Security, and Digital Marketing. EDXSO ...",
+      "related_contacts": [],
+      "source": "LinkedIn Company Index"
+    }
+  ],
+  "warnings": []
+}
