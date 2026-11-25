@@ -6,5 +6,6 @@ __pycache__/
 .cache/
 .DS_Store
 outputs/*.tmp
+*debug_bundle.txt
 frontend/node_modules/
 frontend/.next/

@@ -240,7 +240,7 @@ if "last_result" in st.session_state:
     c1, c2 = st.columns(2)
     c1.download_button(
         label="Download Ranked Results (CSV)",
-        data=result_to_csv_str(res),
+        data=result_to_csv_str(res).encode("utf-8-sig"),
         file_name=f"{file_slug}_results.csv",
         mime="text/csv",
         use_container_width=True,

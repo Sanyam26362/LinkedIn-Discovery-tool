@@ -1,5 +1,6 @@
 import asyncio
 import json
+import os
 import threading
 from pathlib import Path
 from typing import Any
@@ -108,12 +109,20 @@ async def get_latest(request: Request) -> JSONResponse:
     return JSONResponse({"result": None})
 
 
+def _safe_save_outputs(result: PipelineRunResult) -> None:
+    """Persist outputs locally when disk is writable without failing read-only containers."""
+    try:
+        save_outputs(result, OUTPUTS_DIR, file_prefix=f"{_slugify(result.search_phrase)}_results")
+    except Exception:
+        return
+
+
 async def discover_sync(request: Request) -> JSONResponse:
     try:
         body = await request.json()
         kwargs = _build_pipeline_kwargs(body)
         result = await asyncio.to_thread(run_pipeline, **kwargs)
-        save_outputs(result, OUTPUTS_DIR, file_prefix=f"{_slugify(result.search_phrase)}_results")
+        _safe_save_outputs(result)
         return JSONResponse(result.model_dump(mode="json"))
     except ValueError as exc:
         return JSONResponse({"detail": str(exc)}, status_code=400)
@@ -147,7 +156,7 @@ async def discover_stream(request: Request) -> StreamingResponse:
     def _worker() -> None:
         try:
             result = run_pipeline(**kwargs, on_progress=_on_progress)
-            save_outputs(result, OUTPUTS_DIR, file_prefix=f"{_slugify(result.search_phrase)}_results")
+            _safe_save_outputs(result)
             loop.call_soon_threadsafe(
                 queue.put_nowait,
                 ("complete", result.model_dump(mode="json")),
@@ -161,7 +170,11 @@ async def discover_stream(request: Request) -> StreamingResponse:
 
     async def _event_generator():
         while True:
-            event_type, payload = await queue.get()
+            try:
+                event_type, payload = await asyncio.wait_for(queue.get(), timeout=10.0)
+            except asyncio.TimeoutError:
+                yield b": keepalive\n\n"
+                continue
             if event_type == "done":
                 break
             yield _sse_frame(event_type, payload)
@@ -180,7 +193,7 @@ async def export_csv(request: Request) -> Response:
         slug = _slugify(result.search_phrase)
         csv_text = result_to_csv_str(result)
         return Response(
-            content=csv_text.encode("utf-8"),
+            content=csv_text.encode("utf-8-sig"),
             media_type="text/csv; charset=utf-8",
             headers={"Content-Disposition": f'attachment; filename="{slug}_results.csv"'},
         )
@@ -213,14 +226,23 @@ routes = [
     Route("/api/export/json", export_json, methods=["POST"]),
 ]
 
+_raw_cors = os.getenv("CORS_ORIGINS", "*").strip()
+_cors_origins = (
+    ["*"]
+    if _raw_cors == "*" or not _raw_cors
+    else [origin.strip().rstrip("/") for origin in _raw_cors.split(",") if origin.strip()]
+)
+
 app = Starlette(routes=routes)
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["*"],
+    allow_origins=_cors_origins,
     allow_methods=["*"],
     allow_headers=["*"],
 )
 
 
 if __name__ == "__main__":
-    uvicorn.run(app, host="127.0.0.1", port=8000)
+    host = os.getenv("HOST", "0.0.0.0" if os.getenv("PORT") else "127.0.0.1")
+    port = int(os.getenv("PORT", "8000"))
+    uvicorn.run(app, host=host, port=port)

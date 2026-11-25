@@ -180,16 +180,25 @@ def rank_commenters(
     )
     target_persona_text = TARGET_PERSONA_PATH.read_text(encoding="utf-8").strip()
 
+    _not_listed = "not publicly listed"
     candidate_texts: list[str] = []
     for c in commenters:
         analysis = analyses[c.profile_url]
-        indicators = ", ".join(ind.value for ind in analysis.school_ecosystem_indicators)
-        comments_joined = " | ".join(t.comment_snippet for t in c.commented_posts)
-        candidate_texts.append(
-            f"Role: {analysis.current_role}. Organization: {analysis.organization}. "
-            f"Location: {analysis.location}. Headline: {c.headline}. "
-            f"Indicators: {indicators}. Comments: {comments_joined}"
+        evidence_parts: list[str] = []
+        if analysis.current_role and analysis.current_role.strip().lower() != _not_listed:
+            evidence_parts.append(f"Role: {analysis.current_role.strip()}")
+        if analysis.organization and analysis.organization.strip().lower() != _not_listed:
+            evidence_parts.append(f"Organization: {analysis.organization.strip()}")
+        if analysis.location and analysis.location.strip().lower() != _not_listed:
+            evidence_parts.append(f"Location: {analysis.location.strip()}")
+        if c.headline and c.headline.strip():
+            evidence_parts.append(f"Headline: {c.headline.strip()}")
+        comments_joined = " | ".join(
+            t.comment_snippet.strip() for t in c.commented_posts if t.comment_snippet.strip()
         )
+        if comments_joined:
+            evidence_parts.append(f"Comments: {comments_joined}")
+        candidate_texts.append(". ".join(evidence_parts) if evidence_parts else f"Profile: {c.name}")
 
     vectors = _embed_all_same_model(
         [target_persona_text] + candidate_texts,
@@ -208,9 +217,10 @@ def rank_commenters(
     for commenter, cand_vec in zip(commenters, candidate_vecs):
         analysis = analyses[commenter.profile_url]
 
-        # Cosine similarity on L2-normalized vectors in [-1, 1], clamped to [0, 1] and rescaled to [0, 100]
-        raw_cos = float(np.clip(np.dot(persona_vec, cand_vec), 0.0, 1.0))
-        embedding_score = round(raw_cos * 100.0, 2)
+        # Calibrate anisotropic cosine similarity by mapping [0.62, 0.88] -> [0.0, 100.0]
+        raw_cos = float(np.dot(persona_vec, cand_vec))
+        calibrated = float(np.clip((raw_cos - 0.62) / (0.88 - 0.62), 0.0, 1.0))
+        embedding_score = round(calibrated * 100.0, 2)
 
         extra_posts = max(0, commenter.engagement_count - 1)
         engagement_bonus = min(

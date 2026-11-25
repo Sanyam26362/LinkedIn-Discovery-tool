@@ -70,5 +70,5 @@ def save_outputs(
     csv_path = output_dir / f"{file_prefix}.csv"
 
     json_path.write_text(result_to_json_str(result), encoding="utf-8")
-    csv_path.write_text(result_to_csv_str(result), encoding="utf-8")
+    csv_path.write_text(result_to_csv_str(result), encoding="utf-8-sig")
     return json_path, csv_path

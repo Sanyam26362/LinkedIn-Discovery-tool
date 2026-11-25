@@ -374,6 +374,44 @@ def test_stage5_ranking_and_stage6_export(monkeypatch):
     assert ranked[0].name == "Principal A"
     assert ranked[0].rank == 1
     assert ranked[0].engagement_bonus == 5.0
+    assert ranked[0].embedding_similarity == 100.0
+    assert ranked[1].embedding_similarity == 0.0
+
+    # Verify anisotropy calibration ([0.62, 0.88] -> [0, 100]) and zero LLM/placeholder text leakage
+    captured_contents: list[list[str]] = []
+
+    class CalibratedEmbedModels:
+        def embed_content(self, model, contents, config):
+            captured_contents.append(list(contents))
+            vecs = [
+                SimpleNamespace(values=[1.0, 0.0]),  # persona
+                SimpleNamespace(values=[0.85, 0.52678]),  # cos = 0.85 -> (0.85 - 0.62)/0.26 = 88.46
+                SimpleNamespace(values=[0.75, 0.66144]),  # cos = 0.75 -> (0.75 - 0.62)/0.26 = 50.00
+            ]
+            return SimpleNamespace(embeddings=vecs)
+
+    monkeypatch.setattr(
+        "src.stage5_ranking.genai.Client",
+        lambda **kwargs: SimpleNamespace(models=CalibratedEmbedModels()),
+    )
+    analyses_with_unlisted = {
+        **analyses,
+        "https://www.linkedin.com/in/sdr-b": ProfileAnalysis(
+            current_role="Not publicly listed",
+            organization="Not publicly listed",
+            location="Not publicly listed",
+            school_ecosystem_indicators=[EcosystemIndicator.NOT_APPLICABLE],
+            llm_fit_score=20.0,
+            match_explanation="Non-K12 SaaS.",
+        ),
+    }
+    calibrated_ranked = rank_commenters(
+        commenters, analyses_with_unlisted, gemini_api_key="test-key", use_cache=False
+    )
+    assert abs(calibrated_ranked[0].embedding_similarity - 88.46) < 0.2
+    assert abs(calibrated_ranked[1].embedding_similarity - 50.0) < 0.2
+    assert all("General / Non-K12 Specific" not in t for t in captured_contents[0][1:])
+    assert all("Not publicly listed" not in t for t in captured_contents[0][1:])
 
     # Verify single-item fallback when an embedding model collapses list inputs into 1 vector
     class CollapsingListEmbedModels:
@@ -528,3 +566,381 @@ def test_discover_related_companies_from_serper_and_contacts(monkeypatch):
     assert companies[0].company_url == "https://www.linkedin.com/company/fuelk12"
     assert companies[2].name == "LEAD School"
     assert "Anudeep Naik" in companies[2].related_contacts
+
+
+def test_stage2_serper_recency_gl_and_single_word_dedup(monkeypatch):
+    from src import stage2_discovery
+
+    sent_payloads: list[dict] = []
+
+    class FakeSerperClient:
+        def __init__(self, **kwargs):
+            pass
+
+        def __enter__(self):
+            return self
+
+        def __exit__(self, *args):
+            return False
+
+        def post(self, url, json):
+            sent_payloads.append(dict(json))
+            return SimpleNamespace(status_code=200, text="{}", json=lambda: {"organic": []})
+
+    monkeypatch.setattr(stage2_discovery, "SERPER_GL", "IN")
+    monkeypatch.setattr(stage2_discovery.httpx, "Client", FakeSerperClient)
+
+    stage2_discovery._search_serper_pages("EDXSO", "serper-test")
+    assert len(sent_payloads) == 2
+    assert all(p["num"] == 10 and p["gl"] == "in" and "after:" in p["q"] for p in sent_payloads)
+    assert all('"EDXSO"' in p["q"] for p in sent_payloads)
+
+    sent_payloads.clear()
+    stage2_discovery._search_serper_pages("K12 B2B Sales", "serper-test")
+    assert len(sent_payloads) == 3
+    assert all(p["num"] == 10 and p["gl"] == "in" and "after:" in p["q"] for p in sent_payloads)
+    assert sum('"K12 B2B Sales"' in p["q"] for p in sent_payloads) == 2
+    assert sum('"K12 B2B Sales"' not in p["q"] and "K12 B2B Sales" in p["q"] for p in sent_payloads) == 1
+
+
+def test_stage2_explicit_date_parsing_avoids_now_fallback():
+    serp_pages = [
+        {
+            "organic": [
+                {
+                    "link": "https://www.linkedin.com/pulse/old-edtech-article",
+                    "title": "Old Author - Article",
+                    "date": "Feb 12, 2021",
+                    "snippet": "K12 B2B Sales overview.",
+                },
+                {
+                    "link": "https://www.linkedin.com/pulse/unparseable-edtech-article",
+                    "title": "Mystery Author - Article",
+                    "date": "Sometime earlier",
+                    "snippet": "K12 B2B Sales notes.",
+                },
+                {
+                    "link": "https://www.linkedin.com/pulse/recent-edtech-article",
+                    "title": "Recent Author - Article",
+                    "date": "2 days ago",
+                    "snippet": "K12 B2B Sales update.",
+                },
+            ]
+        }
+    ]
+    posts = parse_serp_pages_to_posts(serp_pages, phrase="K12 B2B Sales", limit=5)
+    assert [p.author_name for p in posts] == ["Recent Author", "Old Author", "Mystery Author"]
+
+
+def test_stage2_quoted_company_search_and_fallback(monkeypatch):
+    from src import stage2_discovery
+
+    company_queries: list[str] = []
+
+    class QuotedFirstClient:
+        def __init__(self, **kwargs):
+            pass
+
+        def __enter__(self):
+            return self
+
+        def __exit__(self, *args):
+            return False
+
+        def post(self, url, json):
+            company_queries.append(json["q"])
+            if '"EDXSO"' in json["q"]:
+                return SimpleNamespace(
+                    status_code=200,
+                    json=lambda: {
+                        "organic": [
+                            {
+                                "title": "EDXSO | LinkedIn",
+                                "link": "https://in.linkedin.com/company/edxso",
+                                "snippet": "Complete K12 school partner company.",
+                            }
+                        ]
+                    },
+                )
+            return SimpleNamespace(status_code=200, json=lambda: {"organic": []})
+
+    monkeypatch.setattr(stage2_discovery.httpx, "Client", QuotedFirstClient)
+    items = stage2_discovery._search_serper_companies("EDXSO", "serper-test")
+    assert len(items) == 1
+    assert company_queries == ['site:linkedin.com/company "EDXSO"']
+
+    # Verify non-company links on quoted query trigger unquoted fallback & single-word brand filter
+    company_queries.clear()
+
+    class MixedAndFallbackClient(QuotedFirstClient):
+        def post(self, url, json):
+            company_queries.append(json["q"])
+            if '"EDXSO"' in json["q"]:
+                return SimpleNamespace(
+                    status_code=200,
+                    json=lambda: {
+                        "organic": [
+                            {
+                                "title": "EDXSO Webinars",
+                                "link": "https://www.youtube.com/playlist?list=123",
+                                "snippet": "Not a company URL",
+                            }
+                        ]
+                    },
+                )
+            return SimpleNamespace(
+                status_code=200,
+                json=lambda: {
+                    "organic": [
+                        {
+                            "title": "EDXSO | LinkedIn",
+                            "link": "https://in.linkedin.com/company/edxso",
+                            "snippet": "Complete K12 school partner.",
+                        },
+                        {
+                            "title": "Edexo | LinkedIn",
+                            "link": "https://in.linkedin.com/company/edexo",
+                            "snippet": "Higher education SaaS.",
+                        },
+                        {
+                            "title": "Empire Life | LinkedIn",
+                            "link": "https://www.linkedin.com/company/empire-life?_hsenc=_edxso_123",
+                            "snippet": "Insurance provider.",
+                        },
+                    ]
+                },
+            )
+
+    monkeypatch.setattr(stage2_discovery.httpx, "Client", MixedAndFallbackClient)
+    brand_companies = discover_related_companies(
+        phrase="EDXSO",
+        ranked_influencers=[],
+        serper_api_key="serper-test",
+        use_cache=False,
+        limit=5,
+    )
+    assert company_queries == [
+        'site:linkedin.com/company "EDXSO"',
+        "site:linkedin.com/company EDXSO",
+    ]
+    assert [c.name for c in brand_companies] == ["EDXSO"]
+
+    company_queries.clear()
+
+    class FallbackClient(QuotedFirstClient):
+        def post(self, url, json):
+            company_queries.append(json["q"])
+            if '"NicheK12"' in json["q"]:
+                return SimpleNamespace(status_code=200, json=lambda: {"organic": []})
+            return SimpleNamespace(
+                status_code=200,
+                json=lambda: {
+                    "organic": [
+                        {
+                            "title": "NicheK12 Solutions | LinkedIn",
+                            "link": "https://www.linkedin.com/company/nichek12",
+                            "snippet": "K12 advisory.",
+                        }
+                    ]
+                },
+            )
+
+    monkeypatch.setattr(stage2_discovery.httpx, "Client", FallbackClient)
+    fallback_items = stage2_discovery._search_serper_companies("NicheK12", "serper-test")
+    assert len(fallback_items) == 1
+    assert company_queries == [
+        'site:linkedin.com/company "NicheK12"',
+        "site:linkedin.com/company NicheK12",
+    ]
+
+
+def test_stage3_replies_and_unmatched_comment_warning(caplog):
+    from src.stage3_extraction import extract_and_deduplicate_commenters_with_meta
+
+    posts = [
+        DiscoveredPost(
+            post_id="7511044245424689152",
+            post_url="https://www.linkedin.com/posts/amanda_k12-sales-activity-7511044245424689152-HL_B",
+            author_name="Amanda",
+            snippet="K12 sales",
+        ),
+        DiscoveredPost(
+            post_id="7480879493239439360",
+            post_url="https://www.linkedin.com/posts/atul_edxso-activity-7480879493239439360-EG9X",
+            author_name="Atul",
+            snippet="EDXSO",
+        ),
+    ]
+    items = [
+        {
+            "type": "reply",
+            "query": {"post": posts[0].post_url},
+            "commentary": "Happy to connect with CBSE principals.",
+            "actor": {
+                "name": "Meera Nair",
+                "linkedinUrl": "https://www.linkedin.com/in/meera-nair",
+                "position": "School Advisor",
+                "author": False,
+                "type": "profile",
+            },
+        },
+        {
+            "type": "comment",
+            "query": {"post": "https://www.linkedin.com/posts/other-activity-9999999999999999999-zzzz"},
+            "commentary": "Unmatched post ID",
+            "actor": {
+                "name": "Ghost User",
+                "linkedinUrl": "https://www.linkedin.com/in/ghost-user",
+                "author": False,
+                "type": "profile",
+            },
+        },
+    ]
+
+    without_replies, _ = parse_apify_comments(items, posts, include_replies=False)
+    assert without_replies == []
+
+    stats: dict[str, int] = {}
+    with caplog.at_level("WARNING"):
+        with_replies, _ = parse_apify_comments(
+            items, posts, include_replies=True, stats_out=stats
+        )
+    assert len(with_replies) == 1
+    assert with_replies[0].commenter_name == "Meera Nair"
+    assert stats["unmatched_count"] == 1
+    assert any("could not be matched" in rec.message for rec in caplog.records)
+
+    # Also verify end-to-end Stage 3 warnings propagation via mocked Apify call
+    import src.stage3_extraction as st3
+
+    orig_run = st3.run_apify_actor_and_fetch_items
+    st3.run_apify_actor_and_fetch_items = lambda **kwargs: items
+    try:
+        commenters, s3_warnings = extract_and_deduplicate_commenters_with_meta(
+            posts, mode=DataSourceMode.LIVE_API, apify_token="apify-test", use_cache=False
+        )
+    finally:
+        st3.run_apify_actor_and_fetch_items = orig_run
+
+    assert len(commenters) == 0  # default APIFY_SCRAPE_REPLIES=False skipped the reply item
+    assert any("could not be matched" in w for w in s3_warnings)
+
+
+def test_stage4_partial_batch_preserves_resolved_when_missing_retry_fails(monkeypatch):
+    call_count = {"n": 0}
+
+    class PartialGroqClient:
+        def __init__(self, **kwargs):
+            pass
+
+        def post(self, url, json):
+            call_count["n"] += 1
+            if call_count["n"] == 1:
+                # Return only 1 of 2 items in the batch
+                return SimpleNamespace(
+                    status_code=200,
+                    text="{}",
+                    json=lambda: {
+                        "choices": [
+                            {
+                                "message": {
+                                    "content": CompactBatchAnalysisResponse(
+                                        results=[
+                                            CompactProfileAnalysisItem(
+                                                id=1,
+                                                role="School Trustee",
+                                                org="Oakridge Trust",
+                                                loc="Hyderabad",
+                                                inds=[EcosystemIndicator.OWNER_TRUSTEE],
+                                                score=91.0,
+                                                why="Manages K12 school trust.",
+                                            )
+                                        ]
+                                    ).model_dump_json()
+                                }
+                            }
+                        ]
+                    },
+                )
+            # Retry for omitted item #2 fails across candidates
+            raise RuntimeError("Transient 503 on single retry")
+
+        def close(self):
+            pass
+
+    monkeypatch.setattr("src.stage4_ai_analysis.httpx.Client", PartialGroqClient)
+    commenters = [
+        DeduplicatedCommenter(
+            profile_url="https://www.linkedin.com/in/trustee-1",
+            name="Trustee One",
+            headline="Managing Trustee @ Oakridge Trust",
+            commented_posts=[
+                PostTrace(
+                    post_url="https://www.linkedin.com/posts/1",
+                    post_author="Author",
+                    comment_snippet="Great initiative.",
+                )
+            ],
+        ),
+        DeduplicatedCommenter(
+            profile_url="https://www.linkedin.com/in/omitted-2",
+            name="Omitted Two",
+            headline="Educator",
+            commented_posts=[
+                PostTrace(
+                    post_url="https://www.linkedin.com/posts/1",
+                    post_author="Author",
+                    comment_snippet="Thanks!",
+                )
+            ],
+        ),
+    ]
+
+    analyses, used_model, warnings = analyze_all_commenters_with_meta(
+        commenters, gemini_api_key="", groq_api_key="gsk-test", use_cache=False
+    )
+    assert analyses["https://www.linkedin.com/in/trustee-1"].llm_fit_score == 91.0
+    assert analyses["https://www.linkedin.com/in/omitted-2"].llm_fit_score == 25.0
+    assert used_model == "openai/gpt-oss-120b"
+    assert warnings == []
+
+
+def test_stage6_save_outputs_writes_utf8_bom_csv(tmp_path):
+    from src.stage6_export import save_outputs
+
+    res = PipelineRunResult(
+        search_phrase="K12 B2B Sales",
+        source_mode=DataSourceMode.TEST_DATASET,
+        total_posts=0,
+        total_unique_commenters=1,
+        posts=[],
+        ranked_influencers=[
+            RankedInfluencer(
+                rank=1,
+                name="Priya Sharma — Advisor",
+                profile_url="https://www.linkedin.com/in/priya",
+                current_role="K–12 Consultant",
+                organization="EduTrust",
+                location="Bengaluru",
+                school_ecosystem_indicators=["School/Education Consultant"],
+                embedding_similarity=80.0,
+                llm_fit_score=90.0,
+                engagement_bonus=0.0,
+                final_relevance_score=86.5,
+                match_explanation="Advises K–12 schools.",
+                commented_post_count=1,
+                commented_posts=[],
+            )
+        ],
+    )
+    json_path, csv_path = save_outputs(res, tmp_path, file_prefix="unicode_test")
+    raw_csv = csv_path.read_bytes()
+    raw_json = json_path.read_bytes()
+    assert raw_csv.startswith(b"\xef\xbb\xbf")
+    assert not raw_json.startswith(b"\xef\xbb\xbf")
+    assert "Priya Sharma — Advisor" in raw_csv.decode("utf-8-sig")
+
+    client = TestClient(api_app)
+    resp = client.post("/api/export/csv", json=res.model_dump(mode="json"))
+    assert resp.status_code == 200
+    assert resp.content.startswith(b"\xef\xbb\xbf")

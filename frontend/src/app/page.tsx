@@ -11,6 +11,7 @@ import { DiscoveryToolbar } from "@/components/DiscoveryToolbar";
 import { HeaderBar } from "@/components/HeaderBar";
 import { InfluencersWorkbench } from "@/components/InfluencersWorkbench";
 import {
+  API_BASE_URL,
   downloadExport,
   fetchConfig,
   fetchLatestResult,
@@ -212,8 +213,6 @@ export default function HomePage() {
               <InfluencersWorkbench
                 key={result.generated_at_utc}
                 influencers={result.ranked_influencers}
-                relatedCompanies={result.related_companies ?? []}
-                searchPhrase={result.search_phrase}
                 focusedPostUrl={focusedPostUrl}
                 onClearPostFocus={() => setFocusedPostUrl(null)}
               />
@@ -252,7 +251,7 @@ export default function HomePage() {
           <span className="font-mono">
             {result
               ? `${result.total_duration_secs.toFixed(2)}s · ${result.discovery_provider}`
-              : "API: http://127.0.0.1:8000"}
+              : `API: ${API_BASE_URL}`}
           </span>
         </div>
       </footer>

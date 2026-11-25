@@ -124,8 +124,6 @@ def _normalize_indicators(
     coerced = [ind for item in (raw_inds or []) if (ind := _coerce_indicator(item)) is not None]
     deduped = list(dict.fromkeys(coerced))
     if not deduped:
-        if score >= 75.0:
-            return [EcosystemIndicator.DECISION_MAKER_CONNECTOR]
         if score >= 45.0:
             return [EcosystemIndicator.DECISION_MAKER_CONNECTOR]
         return [EcosystemIndicator.NOT_APPLICABLE]
@@ -175,7 +173,7 @@ def _is_permanent_model_unavailable(provider: str, exc: Exception) -> bool:
             "perday" in msg or "free_tier_requests" in msg or "per day" in msg or "limit: 0" in msg
         ):
             return True
-    if "not_found" in msg or "model_not_found" in msg or "does not exist" in msg:
+    if "not_found" in msg or "model_not_found" in msg or "does not exist" in msg or "decommissioned" in msg:
         return True
     return False
 
@@ -428,9 +426,14 @@ def _analyze_batch_resilient(
             missing.append(c)
 
     if missing and len(missing) < len(batch):
-        retry_map, retry_model = _call_model_for_batch(missing, router, gemini_client, groq_client)
-        if retry_model:
-            models_used.add(retry_model)
+        try:
+            retry_map, retry_model = _call_model_for_batch(missing, router, gemini_client, groq_client)
+            if retry_model:
+                models_used.add(retry_model)
+        except _AuthConfigError:
+            raise
+        except Exception:
+            retry_map = {}
         for c in missing:
             resolved[c.profile_url] = retry_map.get(c.profile_url) or _fallback_analysis(
                 c, "omitted in model response"
@@ -535,11 +538,15 @@ def analyze_all_commenters_with_meta(
                             models_used_ordered.append(m)
                     if use_cache:
                         for c, ck in batch_pairs:
-                            if c.profile_url in batch_result:
+                            analysis_item = batch_result.get(c.profile_url)
+                            if (
+                                analysis_item is not None
+                                and not analysis_item.match_explanation.startswith("Fallback assessment")
+                            ):
                                 set_cached_json(
                                     "profile_analysis",
                                     ck,
-                                    batch_result[c.profile_url].model_dump(mode="json"),
+                                    analysis_item.model_dump(mode="json"),
                                 )
                 except _AuthConfigError:
                     raise

@@ -64,6 +64,18 @@ streamlit run app.py
 pytest -v
 ```
 
+## Deploying to Production (Render + Vercel)
+
+This repo is pre-configured for one-click cloud deployment with [render.yaml](file:///d:/projects/LinkedIn%20Discovery/render.yaml), [Dockerfile](file:///d:/projects/LinkedIn%20Discovery/Dockerfile), [Procfile](file:///d:/projects/LinkedIn%20Discovery/Procfile), and [frontend/.env.example](file:///d:/projects/LinkedIn%20Discovery/frontend/.env.example).
+
+1. **Deploy the Python API Backend on Render**:
+   - Create a new **Web Service** on Render connected to your GitHub repo (`render.yaml` sets `buildCommand`, `uvicorn api:app --host 0.0.0.0 --port $PORT`, and `/api/health`).
+   - Add environment variables: `GEMINI_API_KEY`, `APIFY_API_TOKEN`, `SERPER_API_KEY`, `GROQ_API_KEY` (optional: `SERPER_GL`, `CORS_ORIGINS`).
+2. **Deploy the Next.js Frontend on Vercel**:
+   - Import the same GitHub repo in Vercel and set **Root Directory** to `frontend`.
+   - Set `NEXT_PUBLIC_API_URL` to your deployed Render backend URL (no trailing slash).
+   - Deploy and tighten `CORS_ORIGINS` on Render to your `https://<your-app>.vercel.app` domain.
+
 ## Configuration (`.env`)
 | Variable | Required | Default | Purpose |
 |---|---|---|---|
@@ -71,6 +83,8 @@ pytest -v
 | `APIFY_API_TOKEN` | For `live_api` / `supplied_urls` | — | Stage 3 cookie-less comments & Stage 2 SERP fallback |
 | `SERPER_API_KEY` | Recommended (`live_api`) | — | Fast (`~1–3s`) concurrent Stage 2 Google SERP discovery |
 | `GROQ_API_KEY` | Recommended | — | High-speed concurrent Stage 4 structured profile extraction |
+| `SERPER_GL` | No | `""` | Optional two-letter Google region code (e.g., `in`, `us`) |
+| `CORS_ORIGINS` | No | `*` | Allowed frontend origins for deployed `api.py` |
 | `GROQ_MODEL` | No | `openai/gpt-oss-120b` | Primary Groq LLM (auto-rotates on 429 TPM / errors) |
 | `LLM_MODEL` | No | `gemini-3.5-flash-lite` | Primary Gemini LLM fallback |
 | `MAX_COMMENTS_PER_POST` | No | `40` | Max comments fetched per post |

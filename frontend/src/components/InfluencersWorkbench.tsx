@@ -9,13 +9,10 @@ import {
   Search,
 } from "lucide-react";
 import { LinkedInIcon } from "@/components/LinkedInIcon";
-import { RelatedCompaniesPanel } from "@/components/RelatedCompaniesPanel";
-import type { RankedInfluencer, RelatedCompany } from "@/types/discovery";
+import type { RankedInfluencer } from "@/types/discovery";
 
 interface InfluencersWorkbenchProps {
   influencers: RankedInfluencer[];
-  relatedCompanies: RelatedCompany[];
-  searchPhrase: string;
   focusedPostUrl: string | null;
   onClearPostFocus: () => void;
 }
@@ -51,8 +48,6 @@ function scoreTone(score: number) {
 
 export function InfluencersWorkbench({
   influencers,
-  relatedCompanies,
-  searchPhrase,
   focusedPostUrl,
   onClearPostFocus,
 }: InfluencersWorkbenchProps) {
@@ -176,7 +171,7 @@ export function InfluencersWorkbench({
   return (
     <section className="grid grid-cols-1 lg:grid-cols-12 gap-4 items-start">
       {/* Column 1: Matching Contacts List (Scrollable) */}
-      <div className="lg:col-span-5 bg-surface rounded-lg border border-outline-border flex flex-col overflow-hidden h-[calc(100vh-242px)] min-h-[430px] max-h-[670px]">
+      <div className="lg:col-span-7 bg-surface rounded-lg border border-outline-border flex flex-col overflow-hidden h-[calc(100vh-242px)] min-h-[430px] max-h-[670px]">
         <div className="p-3 border-b border-outline-border flex flex-wrap items-center gap-2 shrink-0">
           <div className="relative flex-1 min-w-[160px]">
             <Search className="w-3.5 h-3.5 text-on-surface-variant absolute left-2.5 top-1/2 -translate-y-1/2 pointer-events-none" />
@@ -272,7 +267,7 @@ export function InfluencersWorkbench({
                         {inf.rank}
                       </td>
 
-                      <td className="py-2.5 px-2.5 max-w-[210px]">
+                      <td className="py-2.5 px-2.5 max-w-[300px]">
                         <div className="flex items-center gap-1">
                           <span
                             className={`font-semibold truncate ${
@@ -328,7 +323,7 @@ export function InfluencersWorkbench({
       </div>
 
       {/* Column 2: Selected Contact Details (Scrollable) */}
-      <aside className="lg:col-span-4 bg-surface rounded-lg border border-outline-border h-[calc(100vh-242px)] min-h-[430px] max-h-[670px] overflow-y-auto clean-scroll p-4 space-y-4">
+      <aside className="lg:col-span-5 bg-surface rounded-lg border border-outline-border h-[calc(100vh-242px)] min-h-[430px] max-h-[670px] overflow-y-auto clean-scroll p-4 space-y-4">
         {activeInfluencer ? (
           <>
             <div className="space-y-2.5">
@@ -506,12 +501,6 @@ export function InfluencersWorkbench({
           </div>
         )}
       </aside>
-
-      {/* Column 3: Related Companies (3-5 Organizations) */}
-      <RelatedCompaniesPanel
-        companies={relatedCompanies}
-        searchPhrase={searchPhrase}
-      />
     </section>
   );
 }

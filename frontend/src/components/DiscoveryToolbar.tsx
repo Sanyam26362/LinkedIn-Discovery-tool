@@ -156,13 +156,6 @@ export function DiscoveryToolbar({
               <strong className="text-forest font-semibold">{strongMatches}</strong> strong fits
               (≥75)
             </span>
-            <span className="text-outline-border">·</span>
-            <span>
-              <strong className="text-on-surface font-semibold">
-                {result.related_companies?.length ?? 0}
-              </strong>{" "}
-              related companies
-            </span>
           </div>
 
           <span className="font-mono text-[11px]">

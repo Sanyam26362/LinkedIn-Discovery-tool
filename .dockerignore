@@ -1,0 +1,13 @@
+.venv/
+.env
+.git/
+.gitignore
+.cache/
+.pytest_cache/
+__pycache__/
+*.pyc
+frontend/
+outputs/
+tests/
+docs/
+*debug_bundle.txt

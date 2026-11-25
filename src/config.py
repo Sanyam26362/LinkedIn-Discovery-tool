@@ -14,6 +14,7 @@ SAMPLE_DATASET_PATH = DATA_DIR / "sample_dataset.json"
 GEMINI_API_KEY: str = os.getenv("GEMINI_API_KEY", "")
 APIFY_API_TOKEN: str = os.getenv("APIFY_API_TOKEN", "")
 SERPER_API_KEY: str = os.getenv("SERPER_API_KEY", "")
+SERPER_GL: str = os.getenv("SERPER_GL", "")
 GROQ_API_KEY: str = os.getenv("GROQ_API_KEY", "")
 
 # Fast Groq LLM Models (used first when GROQ_API_KEY is configured)

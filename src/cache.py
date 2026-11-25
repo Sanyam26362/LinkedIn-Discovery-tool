@@ -42,11 +42,11 @@ def set_cached_json(namespace: str, key: str, data: Any) -> None:
     """Persist a JSON-serializable payload into the local TTL cache."""
     if not ENABLE_CACHE:
         return
-    ns_dir = CACHE_DIR / namespace
-    ns_dir.mkdir(parents=True, exist_ok=True)
-    path: Path = ns_dir / f"{key}.json"
-    envelope = {"cached_at": time.time(), "data": data}
     try:
+        ns_dir = CACHE_DIR / namespace
+        ns_dir.mkdir(parents=True, exist_ok=True)
+        path: Path = ns_dir / f"{key}.json"
+        envelope = {"cached_at": time.time(), "data": data}
         path.write_text(json.dumps(envelope, ensure_ascii=False), encoding="utf-8")
     except Exception:
         # Cache writes must never break the main pipeline.

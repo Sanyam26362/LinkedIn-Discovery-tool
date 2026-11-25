@@ -10,7 +10,7 @@ from src.stage2_discovery import (
     load_sample_posts,
     load_supplied_posts,
 )
-from src.stage3_extraction import extract_and_deduplicate_commenters
+from src.stage3_extraction import extract_and_deduplicate_commenters_with_meta
 from src.stage4_ai_analysis import analyze_all_commenters_with_meta
 from src.stage5_ranking import rank_commenters
 
@@ -76,13 +76,14 @@ def run_pipeline(
     # Stage 3: Commenter Extraction & Deduplication
     t0 = time.perf_counter()
     notify(3, f"Extracting and deduplicating commenters across {len(posts)} posts...")
-    commenters = extract_and_deduplicate_commenters(
+    commenters, stage3_warnings = extract_and_deduplicate_commenters_with_meta(
         posts=posts,
         mode=mode,
         apify_token=apify_token,
         max_comments_per_post=max_comments_per_post,
         use_cache=use_cache,
     )
+    warnings.extend(stage3_warnings)
     stage_timings["stage3_extraction"] = round(time.perf_counter() - t0, 2)
 
     if len(posts) < TARGET_POST_COUNT:
@@ -133,16 +134,14 @@ def run_pipeline(
         finally:
             if company_pool is not None:
                 company_pool.shutdown(wait=False)
-        if len(prefetched_companies) < 5:
-            related_companies = discover_related_companies(
-                phrase=phrase,
-                ranked_influencers=ranked,
-                serper_api_key=serper_api_key,
-                use_cache=True,
-                limit=5,
-            )
-        else:
-            related_companies = prefetched_companies[:5]
+        related_companies = discover_related_companies(
+            phrase=phrase,
+            ranked_influencers=ranked,
+            serper_api_key=serper_api_key,
+            use_cache=use_cache,
+            limit=5,
+            initial_companies=prefetched_companies,
+        )
     else:
         related_companies = discover_related_companies(
             phrase=phrase,

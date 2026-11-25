@@ -12,6 +12,7 @@ from src.config import (
     APIFY_POLL_TIMEOUT_SECS,
     SAMPLE_DATASET_PATH,
     SERPER_API_KEY,
+    SERPER_GL,
     TARGET_POST_COUNT,
 )
 from src.schemas import DataSourceMode, DiscoveredPost, RankedInfluencer, RelatedCompany, normalize_linkedin_url
@@ -51,6 +52,65 @@ def _is_linkedin_post_url(url: str) -> bool:
     )
 
 
+_STANDARD_DATE_FORMATS: tuple[str, ...] = (
+    "%b %d, %Y",
+    "%B %d, %Y",
+    "%Y-%m-%d",
+    "%d %b %Y",
+    "%d %B %Y",
+)
+
+
+def _parse_relative_date(text: str) -> tuple[str, float] | None:
+    """Parse relative date strings like '3 weeks ago' or 'yesterday' into UTC timestamps."""
+    stripped = text.strip()
+    if not stripped:
+        return None
+    if re.search(r"\byesterday\b", stripped, flags=re.IGNORECASE):
+        approx_dt = datetime.now(timezone.utc) - timedelta(days=1)
+        return stripped, approx_dt.timestamp()
+
+    rel = re.search(
+        r"(\d+)\s+(minute|hour|day|week|month|year)s?\s+ago",
+        stripped,
+        flags=re.IGNORECASE,
+    )
+    if not rel:
+        return None
+
+    amount = int(rel.group(1))
+    unit = rel.group(2).lower()
+    if unit == "minute":
+        delta = timedelta(minutes=amount)
+    elif unit == "hour":
+        delta = timedelta(hours=amount)
+    elif unit == "week":
+        delta = timedelta(weeks=amount)
+    elif unit == "month":
+        delta = timedelta(days=amount * 30)
+    elif unit == "year":
+        delta = timedelta(days=amount * 365)
+    else:
+        delta = timedelta(days=amount)
+    approx_dt = datetime.now(timezone.utc) - delta
+    return rel.group(0), approx_dt.timestamp()
+
+
+def _parse_explicit_date(explicit_date: str) -> float:
+    """Parse an explicit SERP date string into a UTC timestamp, or 0.0 if unknown."""
+    rel = _parse_relative_date(explicit_date)
+    if rel is not None:
+        return rel[1]
+
+    for fmt in _STANDARD_DATE_FORMATS:
+        try:
+            dt = datetime.strptime(explicit_date, fmt).replace(tzinfo=timezone.utc)
+            return dt.timestamp()
+        except ValueError:
+            continue
+    return 0.0
+
+
 def _extract_date_and_sort_ts(item: dict, clean_url: str) -> tuple[str, float]:
     """Resolve publication date (YYYY-MM-DD when known) and numeric timestamp for sorting."""
     decoded = decode_linkedin_post_timestamp(clean_url)
@@ -59,25 +119,12 @@ def _extract_date_and_sort_ts(item: dict, clean_url: str) -> tuple[str, float]:
 
     explicit_date = str(item.get("date") or "").strip()
     if explicit_date:
-        return explicit_date, datetime.now(timezone.utc).timestamp()
+        return explicit_date, _parse_explicit_date(explicit_date)
 
     displayed = str(item.get("displayedUrl") or item.get("displayedLink") or "")
-    rel = re.search(
-        r"(\d+)\s+(hour|day|week|month|year)s?\s+ago",
-        displayed,
-        flags=re.IGNORECASE,
-    )
-    if rel:
-        amount = int(rel.group(1))
-        unit = rel.group(2).lower()
-        days_map = {"hour": 0, "day": 1, "week": 7, "month": 30, "year": 365}
-        delta = (
-            timedelta(hours=amount)
-            if unit == "hour"
-            else timedelta(days=amount * days_map[unit])
-        )
-        approx_dt = datetime.now(timezone.utc) - delta
-        return f"~{rel.group(0)}", approx_dt.timestamp()
+    rel = _parse_relative_date(displayed)
+    if rel is not None:
+        return f"~{rel[0]}", rel[1]
 
     return "Recent", 0.0
 
@@ -231,42 +278,84 @@ def parse_serp_pages_to_posts(
 
 
 def _build_serp_queries(phrase: str) -> list[str]:
-    return [
-        f'(site:linkedin.com/posts OR site:linkedin.com/feed/update) "{phrase}"',
-        f"(site:linkedin.com/posts OR site:linkedin.com/feed/update) {phrase}",
-    ]
+    quoted = f'(site:linkedin.com/posts OR site:linkedin.com/feed/update) "{phrase}"'
+    if len(phrase.split()) > 1:
+        return [
+            quoted,
+            f"(site:linkedin.com/posts OR site:linkedin.com/feed/update) {phrase}",
+        ]
+    return [quoted]
+
+
+def _resolved_serper_gl() -> str:
+    return SERPER_GL.strip().lower()
 
 
 def _search_serper_pages(phrase: str, serper_key: str) -> list[dict]:
-    """Run exact and broad Google queries concurrently via Serper.dev REST API (~1-3s)."""
-    queries = _build_serp_queries(phrase)
+    """Run recency-filtered Google queries concurrently via Serper.dev REST API (~1-2s).
+
+    Serper free-tier accounts return HTTP 400 for `num > 10` and `tbs` + parenthesized
+    OR `site:` queries often return 0 hits or `google.com/goto?url=` redirects. Using
+    single `site:linkedin.com/posts` with Google's `after:` date operator stays within
+    free-tier rules and returns direct LinkedIn post URLs.
+    """
+    now_utc = datetime.now(timezone.utc)
+    recent_90d = (now_utc - timedelta(days=90)).strftime("%Y-%m-%d")
+    recent_365d = (now_utc - timedelta(days=365)).strftime("%Y-%m-%d")
+
+    payloads: list[dict] = [
+        {"q": f'site:linkedin.com/posts "{phrase}" after:{recent_90d}', "num": 10},
+        {"q": f'site:linkedin.com/posts "{phrase}" after:{recent_365d}', "num": 10},
+    ]
+    if len(phrase.split()) > 1:
+        payloads.append(
+            {"q": f"site:linkedin.com/posts {phrase} after:{recent_365d}", "num": 10}
+        )
+
+    gl = _resolved_serper_gl()
+    if gl:
+        for body in payloads:
+            body["gl"] = gl
+
     headers = {"X-API-KEY": serper_key.strip(), "Content-Type": "application/json"}
 
     with httpx.Client(headers=headers, timeout=15.0) as client:
-        def _fetch_one(q: str) -> dict:
-            resp = client.post(_SERPER_ENDPOINT, json={"q": q, "num": 10})
+        def _fetch_one(body: dict) -> dict:
+            resp = client.post(_SERPER_ENDPOINT, json=body)
             if resp.status_code in (401, 403):
                 raise ValueError("Serper API authentication failed. Verify your SERPER_API_KEY.")
             if resp.status_code >= 400:
                 raise RuntimeError(f"Serper HTTP {resp.status_code}: {resp.text[:200]}")
             return resp.json()
 
-        with ThreadPoolExecutor(max_workers=len(queries)) as pool:
-            return list(pool.map(_fetch_one, queries))
+        with ThreadPoolExecutor(max_workers=len(payloads)) as pool:
+            return list(pool.map(_fetch_one, payloads))
 
 
 def _search_serper_companies(phrase: str, serper_key: str) -> list[dict]:
     """Query Google via Serper.dev for real LinkedIn company pages matching the topic."""
     headers = {"X-API-KEY": serper_key.strip(), "Content-Type": "application/json"}
+    gl = _resolved_serper_gl()
+
+    def _query(q: str, client: httpx.Client) -> list[dict]:
+        body: dict = {"q": q, "num": 10}
+        if gl:
+            body["gl"] = gl
+        resp = client.post(_SERPER_ENDPOINT, json=body)
+        if resp.status_code >= 400:
+            return []
+        return [
+            it
+            for it in resp.json().get("organic", [])
+            if "linkedin.com/company/" in str(it.get("link") or it.get("url") or "").lower()
+        ]
+
     try:
         with httpx.Client(headers=headers, timeout=12.0) as client:
-            resp = client.post(
-                _SERPER_ENDPOINT,
-                json={"q": f"site:linkedin.com/company {phrase}", "num": 6},
-            )
-            if resp.status_code >= 400:
-                return []
-            return list(resp.json().get("organic", []))
+            quoted_items = _query(f'site:linkedin.com/company "{phrase}"', client)
+            if quoted_items:
+                return quoted_items
+            return _query(f"site:linkedin.com/company {phrase}", client)
     except Exception:
         return []
 
@@ -295,60 +384,88 @@ def discover_related_companies(
     serper_api_key: str | None = None,
     use_cache: bool = True,
     limit: int = 5,
+    initial_companies: list[RelatedCompany] | None = None,
 ) -> list[RelatedCompany]:
     """Return 3-5 real related companies from LinkedIn's company index and top contact orgs."""
-    resolved_serper = (SERPER_API_KEY if serper_api_key is None else serper_api_key).strip()
-    serper_items: list[dict] = []
-
-    if resolved_serper:
-        c_key = build_cache_key({"type": "companies", "phrase": phrase.lower(), "limit": limit})
-        cached = get_cached_json("serp_companies", c_key) if use_cache else None
-        if isinstance(cached, list):
-            serper_items = cached
-        else:
-            serper_items = _search_serper_companies(phrase, resolved_serper)
-            if use_cache and serper_items:
-                set_cached_json("serp_companies", c_key, serper_items)
-
     companies: list[RelatedCompany] = []
     seen_names: set[str] = set()
     seen_urls: set[str] = set()
 
-    for item in serper_items:
-        raw_link = str(item.get("link") or item.get("url") or "")
-        if "linkedin.com/company/" not in raw_link.lower():
-            continue
-        clean_url = normalize_linkedin_url(raw_link)
-        name = _parse_company_name_from_title(str(item.get("title") or ""))
-        if not name or name.lower() in seen_names or clean_url in seen_urls:
-            continue
-        seen_names.add(name.lower())
-        seen_urls.add(clean_url)
-        snippet = str(item.get("snippet") or item.get("description") or "").strip()[:180]
-        companies.append(
-            RelatedCompany(
-                name=name,
-                company_url=clean_url,
-                category=_infer_company_category(f"{name} {snippet}"),
-                description=snippet or f"Relevant LinkedIn organization for {phrase}.",
-                related_contacts=[],
-                source="LinkedIn Company Index",
+    if initial_companies is not None:
+        for existing in initial_companies:
+            copy_comp = existing.model_copy(deep=True)
+            companies.append(copy_comp)
+            seen_names.add(copy_comp.name.lower())
+            seen_urls.add(copy_comp.company_url)
+    else:
+        resolved_serper = (SERPER_API_KEY if serper_api_key is None else serper_api_key).strip()
+        serper_items: list[dict] = []
+
+        if resolved_serper:
+            gl = _resolved_serper_gl()
+            c_key = build_cache_key(
+                {
+                    "type": "companies",
+                    "phrase": phrase.lower(),
+                    "limit": limit,
+                    "gl": gl,
+                    "quoted": True,
+                }
             )
-        )
-        if len(companies) >= limit:
-            break
+            cached = get_cached_json("serp_companies", c_key) if use_cache else None
+            if isinstance(cached, list):
+                serper_items = cached
+            else:
+                serper_items = _search_serper_companies(phrase, resolved_serper)
+                if use_cache and serper_items:
+                    set_cached_json("serp_companies", c_key, serper_items)
+
+        parsed_serper_companies: list[RelatedCompany] = []
+        for item in serper_items:
+            raw_link = str(item.get("link") or item.get("url") or "")
+            if "linkedin.com/company/" not in raw_link.lower():
+                continue
+            clean_url = normalize_linkedin_url(raw_link)
+            name = _parse_company_name_from_title(str(item.get("title") or ""))
+            if not name or name.lower() in seen_names or clean_url in seen_urls:
+                continue
+            seen_names.add(name.lower())
+            seen_urls.add(clean_url)
+            snippet = str(item.get("snippet") or item.get("description") or "").strip()[:180]
+            parsed_serper_companies.append(
+                RelatedCompany(
+                    name=name,
+                    company_url=clean_url,
+                    category=_infer_company_category(f"{name} {snippet}"),
+                    description=snippet or f"Relevant LinkedIn organization for {phrase}.",
+                    related_contacts=[],
+                    source="LinkedIn Company Index",
+                )
+            )
+
+        # For single-word brand queries (e.g. "EDXSO"), prefer exact token matches over
+        # Google spell-corrections ("Edexo", "Ramjas") or stripped query-param accidents.
+        if len(phrase.split()) == 1 and parsed_serper_companies:
+            brand_token = phrase.strip().lower()
+            exact_brand_matches = [
+                c
+                for c in parsed_serper_companies
+                if brand_token in f"{c.name} {c.company_url} {c.description}".lower()
+            ]
+            if exact_brand_matches:
+                parsed_serper_companies = exact_brand_matches
+
+        companies.extend(parsed_serper_companies[:limit])
 
     # Supplement up to `limit` (or populate in Supplied URLs / Test Dataset mode) using
-    # real organizations extracted from the highest-ranked ecosystem contacts.
-    if len(companies) < limit and ranked_influencers:
+    # real organizations extracted from relevant ecosystem contacts.
+    if ranked_influencers:
         for inf in ranked_influencers:
             org = (inf.organization or "").strip()
             if not org or org.lower() == "not publicly listed":
                 continue
             low_org = org.lower()
-            if low_org in seen_names:
-                continue
-            # Avoid duplicates if Serper already captured the same company
+
             matched_existing = next(
                 (c for c in companies if low_org in c.name.lower() or c.name.lower() in low_org),
                 None,
@@ -356,6 +473,11 @@ def discover_related_companies(
             if matched_existing:
                 if inf.name not in matched_existing.related_contacts:
                     matched_existing.related_contacts.append(inf.name)
+                continue
+
+            if len(companies) >= limit or low_org in seen_names:
+                continue
+            if inf.llm_fit_score < 40.0 and inf.final_relevance_score < 40.0:
                 continue
 
             seen_names.add(low_org)
@@ -369,8 +491,6 @@ def discover_related_companies(
                     source="Top Contact Organization",
                 )
             )
-            if len(companies) >= limit:
-                break
 
     return companies[:limit]
 
@@ -402,8 +522,16 @@ def discover_posts_live_with_meta(
     resolved_apify = (APIFY_API_TOKEN if apify_token is None else apify_token).strip()
     warnings: list[str] = []
 
+    gl = _resolved_serper_gl()
+    cache_payload = {
+        "phrase": phrase.lower(),
+        "limit": limit,
+        "gl": gl,
+        "recency": "after:90d+365d",
+    }
+
     if use_cache:
-        c_key = build_cache_key({"phrase": phrase.lower(), "limit": limit})
+        c_key = build_cache_key(cache_payload)
         cached = get_cached_json("serp_posts", c_key)
         if isinstance(cached, dict) and cached.get("posts"):
             posts = [DiscoveredPost(**item) for item in cached["posts"]]
@@ -438,6 +566,28 @@ def discover_posts_live_with_meta(
         provider_used = "Apify SERP"
 
     posts = parse_serp_pages_to_posts(serp_pages, phrase=phrase, limit=limit)
+    if (
+        len(posts) < limit
+        and provider_used == "Serper.dev"
+        and resolved_serper
+    ):
+        # Fallback for scarce niche phrases with fewer than `limit` posts in the last year.
+        try:
+            headers = {"X-API-KEY": resolved_serper, "Content-Type": "application/json"}
+            topup_body: dict = {
+                "q": f"(site:linkedin.com/posts OR site:linkedin.com/feed/update) {phrase}",
+                "num": 10,
+            }
+            if gl:
+                topup_body["gl"] = gl
+            with httpx.Client(headers=headers, timeout=12.0) as client:
+                topup_resp = client.post(_SERPER_ENDPOINT, json=topup_body)
+                if topup_resp.status_code == 200:
+                    serp_pages = list(serp_pages) + [topup_resp.json()]
+                    posts = parse_serp_pages_to_posts(serp_pages, phrase=phrase, limit=limit)
+        except Exception:
+            pass
+
     if not posts:
         raise RuntimeError(
             f"No public LinkedIn post URLs were found for '{phrase}'. "
@@ -445,7 +595,7 @@ def discover_posts_live_with_meta(
         )
 
     if use_cache:
-        c_key = build_cache_key({"phrase": phrase.lower(), "limit": limit})
+        c_key = build_cache_key(cache_payload)
         set_cached_json(
             "serp_posts",
             c_key,
