@@ -63,8 +63,8 @@ MAX_COMMENTS_PER_POST: int = int(os.getenv("MAX_COMMENTS_PER_POST", "60"))
 ANALYSIS_BATCH_SIZE: int = int(os.getenv("ANALYSIS_BATCH_SIZE", "12"))
 ANALYSIS_MAX_WORKERS: int = int(os.getenv("ANALYSIS_MAX_WORKERS", "3"))
 
-# Local TTL Cache (accelerates repeat runs & cross-search profile reuse)
-ENABLE_CACHE: bool = os.getenv("ENABLE_CACHE", "true").strip().lower() in ("1", "true", "yes")
+# Local TTL Cache (accelerates repeat runs & cross-search profile reuse when enabled)
+ENABLE_CACHE: bool = os.getenv("ENABLE_CACHE", "false").strip().lower() in ("1", "true", "yes")
 CACHE_TTL_SECS: int = int(os.getenv("CACHE_TTL_SECS", "3600"))
 
 # Hybrid Ranking Weights

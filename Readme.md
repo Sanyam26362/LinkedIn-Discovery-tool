@@ -1,100 +1,218 @@
-# LinkedIn School Influencer Discovery Tool (EDXSO AI Intern Assignment)
+# EDXSO · LinkedIn School Influencer Discovery Tool
 
-An end-to-end 6-stage AI pipeline that discovers recent LinkedIn posts for a target search phrase (default: `"K12 B2B Sales"`), extracts and deduplicates commenters with full post-to-commenter traceability, enriches professional context via high-speed Groq/Gemini structured outputs, and ranks K12 school-ecosystem decision-makers via hybrid semantic embeddings + LLM scoring.
+An end-to-end 6-stage AI discovery tool that finds relevant LinkedIn discussions for any topic or brand (e.g., `"K12 B2B Sales"`, `"EDXSO"`), extracts and deduplicates post commenters with full post-to-commenter traceability, enriches profiles via high-speed Groq/Gemini structured analysis, and ranks K12 school-ecosystem decision-makers (principals, school owners/trustees, education consultants, and edu-entrepreneurs).
 
-## Architecture (6 Stages)
-1. **Phrase Input (`src/stage1_input.py`)**: Validates and normalizes the search phrase via Web UI or CLI.
-2. **Post Discovery (`src/stage2_discovery.py`)**: Retrieves 5 recent LinkedIn posts via:
-   - **`live_api`**: Primary cookie-less LinkedIn post search via Apify `harvestapi~linkedin-post-search` (preferring posts with comments), with automatic fallback to **Serper.dev** Google SERP (`~1–3s`) and cookie-less `apify~google-search-scraper`, decoding exact UTC dates (`YYYY-MM-DD`).
-   - **`supplied_urls`**: User-supplied LinkedIn post URLs (up to 5).
-   - **`test_dataset`**: Clearly labelled offline reference dataset (`data/sample_dataset.json`).
-3. **Commenter Extraction & Deduplication (`src/stage3_extraction.py`)**: Fetches public top-level post comments (`scrapeReplies=false`) via cookie-less `harvestapi~linkedin-post-comments`, normalizes LinkedIn URLs, deduplicates commenters across posts, and preserves post-to-commenter traceability (`PostTrace`).
-4. **AI Analysis (`src/stage4_ai_analysis.py`)**: Uses concurrent workers (`ThreadPoolExecutor`) with a token-efficient integer-ID schema (`CompactBatchAnalysisResponse`), **Groq** (`openai/gpt-oss-120b` → `openai/gpt-oss-20b` → `qwen/qwen3.8-27b`) and automatic **Gemini Flash-Lite** fallback (`gemini-3.5-flash-lite` → `gemini-3.1-flash-lite`), per-profile TTL caching, and dead-model skipping.
-5. **Hybrid Semantic Ranking (`src/stage5_ranking.py`)**: Single-batch (`batch_size=100`) `gemini-embedding-001` 768-d cosine similarity against cached `data/target_persona.txt` embeddings combined with LLM fit and multi-post engagement bonus.
-6. **Results & Export (`src/stage6_export.py`, `app.py`, `src/cli.py`)**: Interactive Streamlit dashboard and CLI outputting CRM-ready CSV, full nested JSON exports in `outputs/`, and per-stage execution timings.
+When you paste specific LinkedIn post URLs (including `lnkd.in/...` short links), it also discovers **Similar Profiles** (lookalike LinkedIn contacts) and displays them side-by-side with the post's commenters.
 
-## Local Setup
+---
+
+## Key Features
+
+- **Guided 3-Step Web Workbench**:
+  1. **Step 1 — Enter Name / Topic**: Type a topic, industry keyword, or company name and press `Enter`.
+  2. **Step 2 — Paste URLs (Optional)**: Optionally paste up to 10 LinkedIn post URLs (`linkedin.com/posts/...`, `linkedin.com/feed/update/...`, `linkedin.com/pulse/...`, or `lnkd.in/...` short links) or leave empty, then press `Enter`.
+  3. **Step 3 — Results**:
+     - **Topic / Name Search (No URLs pasted)**: Shows **Matching Contacts** and **Source Posts** tabs.
+     - **Pasted URL Search**: Shows a **2-column view** with **Commenter People** on the left and **Similar Profiles** on the right, plus a **Source Posts** tab.
+- **Demo Data Mode**: Loads a built-in offline fixture ([data/sample_dataset.json](file:///d:/projects/LinkedIn%20Discovery/data/sample_dataset.json)) with 5 sample posts and 5 sample contacts and runs live AI ranking without scraping LinkedIn.
+- **Hybrid Ranking**: Combines LLM structured profile scoring (65%) with Gemini semantic embeddings against [data/target_persona.txt](file:///d:/projects/LinkedIn%20Discovery/data/target_persona.txt) (35%, with automatic lexical fallback on quota throttling) plus a multi-post engagement bonus (up to +10).
+- **CRM-Ready Exports**: Download ranked results as UTF-8 BOM CSV or full nested JSON from the UI or CLI.
+
+---
+
+## Prerequisites
+
+Make sure the following are installed on your machine:
+
+- **Python 3.11+** (`python --version`)
+- **Node.js 18+** and **npm** (`node -v`, `npm -v`)
+- **Git**
+
+### API Keys Required
+
+| Key | Required? | Purpose |
+|---|---|---|
+| `GEMINI_API_KEY` | **Yes** | Stage 5 semantic embeddings & Stage 4 LLM fallback |
+| `APIFY_API_TOKEN` | **Yes** (for live/URL runs) | Stage 3 cookie-less comment extraction & Stage 2 LinkedIn post search |
+| `SERPER_API_KEY` | **Recommended** | Fast Stage 2 Google SERP post discovery & Similar Profiles search |
+| `GROQ_API_KEY` | **Recommended** | Fast concurrent Stage 4 structured LLM extraction (`openai/gpt-oss-120b`) |
+
+> You can configure keys in `.env` or enter temporary runtime overrides directly in the Web UI under **API Keys**.
+
+---
+
+## Installation & Setup
+
+### 1. Clone the Repository
+
+```bash
+git clone https://github.com/Sanyam26362/LinkedIn-Discovery-tool.git
+cd "LinkedIn Discovery"
+```
+
+### 2. Set Up the Python Backend
+
+**Windows (PowerShell):**
 ```powershell
 python -m venv .venv
 .\.venv\Scripts\Activate.ps1
 pip install -r requirements.txt
 Copy-Item .env.example .env
-# Add GEMINI_API_KEY, APIFY_API_TOKEN, SERPER_API_KEY, and GROQ_API_KEY to .env
 ```
 
-## Running the Tool
+**macOS / Linux (Bash):**
+```bash
+python3 -m venv .venv
+source .venv/bin/activate
+pip install -r requirements.txt
+cp .env.example .env
+```
 
-### 1. CLI Mode
-- **Live API mode** (Serper/Apify + Groq/Gemini):
-  ```powershell
-  python -m src.cli --phrase "K12 B2B Sales" --mode live_api
-  ```
-- **Force cold run bypassing local `.cache/`**:
-  ```powershell
-  python -m src.cli --phrase "K12 B2B Sales" --mode live_api --no-cache
-  ```
-- **Supplied URLs mode** (user-provided LinkedIn post URLs + Apify comments + AI):
-  ```powershell
-  python -m src.cli --phrase "K12 B2B Sales" --mode supplied_urls --urls "https://www.linkedin.com/posts/..."
-  ```
-- **Labelled Test Dataset mode** (offline post/comment fixture + live AI ranking):
-  ```powershell
-  python -m src.cli --phrase "K12 B2B Sales" --mode test_dataset
-  ```
+Open `.env` and fill in your API keys:
+```env
+GEMINI_API_KEY=your_gemini_api_key_here
+APIFY_API_TOKEN=your_apify_api_token_here
+SERPER_API_KEY=your_serper_api_key_here
+GROQ_API_KEY=your_groq_api_key_here
+```
 
-### 2. Next.js + TypeScript Web App (`frontend/` + `api.py`)
-- **Terminal 1 — Start the Python API server (`http://127.0.0.1:8000`)**:
-  ```powershell
-  python api.py
-  ```
-- **Terminal 2 — Start the Next.js frontend (`http://localhost:3000`)**:
-  ```powershell
-  cd frontend
-  npm install
-  npm run dev
-  ```
+### 3. Set Up the Next.js Frontend
 
-### 3. Streamlit Web UI (Alternative single-process UI)
+```bash
+cd frontend
+npm install
+```
+
+*(Optional)* If your backend runs on a custom host/port instead of `http://127.0.0.1:8000`, copy `frontend/.env.example` to `frontend/.env.local` and update `NEXT_PUBLIC_API_URL`:
+
+**Windows (PowerShell):**
 ```powershell
-streamlit run app.py
+Copy-Item .env.example .env.local
 ```
 
-### 4. Running Unit Tests
-```powershell
-pytest -v
+**macOS / Linux (Bash):**
+```bash
+cp .env.example .env.local
 ```
+
+Return to the project root when finished:
+```bash
+cd ..
+```
+
+---
+
+## Running the Application
+
+### Option 1: Full Web App (Next.js Frontend + Starlette API)
+
+Open **two terminals** at the project root:
+
+**Terminal 1 — Start the Python API server (`http://127.0.0.1:8000`):**
+
+Windows (PowerShell):
+```powershell
+.\.venv\Scripts\python.exe api.py
+```
+
+macOS / Linux:
+```bash
+.venv/bin/python api.py
+```
+
+**Terminal 2 — Start the Next.js frontend (`http://localhost:3000`):**
+```bash
+cd frontend
+npm run dev
+```
+
+Open `http://localhost:3000` in your browser (if port 3000 is already in use, Next.js will print the active port, e.g. `http://localhost:3001`).
+
+### Option 2: CLI Mode
+
+Run the 6-stage pipeline directly from the terminal (outputs saved to `outputs/`):
+
+- **Live Search (`live_api`)**:
+  ```powershell
+  .\.venv\Scripts\python.exe -m src.cli --phrase "K12 B2B Sales" --mode live_api
+  ```
+- **Pasted Post URLs (`supplied_urls`, includes Similar Profiles)**:
+  ```powershell
+  .\.venv\Scripts\python.exe -m src.cli --phrase "EDXSO" --mode supplied_urls --urls "https://lnkd.in/p/gmVGnCHM"
+  ```
+- **Offline Demo Data (`test_dataset`)**:
+  ```powershell
+  .\.venv\Scripts\python.exe -m src.cli --phrase "K12 B2B Sales" --mode test_dataset
+  ```
+
+### Option 3: Streamlit Prototype UI (Single-Process)
+
+```powershell
+.\.venv\Scripts\streamlit.exe run app.py
+```
+
+---
+
+## Testing & Verification
+
+Run the backend test suite:
+```powershell
+.\.venv\Scripts\python.exe -m pytest -v
+```
+
+Run frontend linting and production build verification:
+```bash
+cd frontend
+npm run lint
+npm run build
+```
+
+---
+
+## Environment Variables Reference (`.env`)
+
+| Variable | Required | Default | Purpose |
+|---|---|---|---|
+| `GEMINI_API_KEY` | Yes | — | Stage 5 semantic embeddings & Stage 4 LLM fallback |
+| `APIFY_API_TOKEN` | For live / URLs | — | Stage 3 cookie-less comments & Stage 2 LinkedIn post search |
+| `SERPER_API_KEY` | Recommended | — | Stage 2 Google SERP discovery & Similar Profiles search |
+| `GROQ_API_KEY` | Recommended | — | Fast concurrent Stage 4 structured LLM extraction |
+| `TARGET_POST_COUNT` | No | `10` | Maximum posts discovered / processed per search |
+| `MAX_COMMENTS_PER_POST` | No | `60` | Maximum comments fetched per post |
+| `LINKEDIN_SEARCH_SORT_BY` | No | `relevance` | Apify post search ordering (`relevance` or `date`) |
+| `LINKEDIN_SEARCH_POSTED_LIMIT` | No | `3months` | Initial Apify recency window (`week`, `month`, `3months`, `6months`, `year`, `any`) |
+| `SERPER_GL` | No | `""` | Optional two-letter Google country code (e.g., `in`, `us`) |
+| `CORS_ORIGINS` | No | `*` | Allowed frontend origins for `api.py` |
+| `GROQ_MODEL` | No | `openai/gpt-oss-120b` | Primary Groq LLM (auto-rotates on rate limits/errors) |
+| `LLM_MODEL` | No | `gemini-3.5-flash-lite` | Primary Gemini LLM fallback |
+| `ANALYSIS_BATCH_SIZE` | No | `12` | Profiles per concurrent LLM batch |
+| `ANALYSIS_MAX_WORKERS` | No | `3` | Concurrent LLM batch workers |
+| `ENABLE_CACHE` | No | `false` | Enables local `.cache/` TTL reuse when `true` (`Fast cache` toggle starts unchecked) |
+| `CACHE_TTL_SECS` | No | `3600` | Local cache expiration in seconds |
+
+---
+
+## Troubleshooting
+
+- **"Backend API unreachable" in browser**: Make sure `api.py` is running on `http://127.0.0.1:8000` before running searches in the frontend.
+- **PowerShell activation blocked (`Activate.ps1`)**: Run `Set-ExecutionPolicy -Scope CurrentUser RemoteSigned` once, or invoke Python directly via `.\.venv\Scripts\python.exe`.
+- **Short LinkedIn share links (`https://lnkd.in/...`)**: Supported directly in Step 2; the backend resolves the redirect to the canonical LinkedIn post URL automatically.
+- **Gemini embedding 429 rate limits**: Stage 5 automatically falls back to lexical persona scoring and surfaces a notice so ranked results still complete.
+
+---
 
 ## Deploying to Production (Render + Vercel)
 
-This repo is pre-configured for one-click cloud deployment with [render.yaml](file:///d:/projects/LinkedIn%20Discovery/render.yaml), [Dockerfile](file:///d:/projects/LinkedIn%20Discovery/Dockerfile), [Procfile](file:///d:/projects/LinkedIn%20Discovery/Procfile), and [frontend/.env.example](file:///d:/projects/LinkedIn%20Discovery/frontend/.env.example).
+Pre-configured with [render.yaml](file:///d:/projects/LinkedIn%20Discovery/render.yaml), [Dockerfile](file:///d:/projects/LinkedIn%20Discovery/Dockerfile), [Procfile](file:///d:/projects/LinkedIn%20Discovery/Procfile), and [frontend/.env.example](file:///d:/projects/LinkedIn%20Discovery/frontend/.env.example):
 
-1. **Deploy the Python API Backend on Render**:
-   - Create a new **Web Service** on Render connected to your GitHub repo (`render.yaml` sets `buildCommand`, `uvicorn api:app --host 0.0.0.0 --port $PORT`, and `/api/health`).
-   - Add environment variables: `GEMINI_API_KEY`, `APIFY_API_TOKEN`, `SERPER_API_KEY`, `GROQ_API_KEY` (optional: `SERPER_GL`, `CORS_ORIGINS`).
-2. **Deploy the Next.js Frontend on Vercel**:
-   - Import the same GitHub repo in Vercel and set **Root Directory** to `frontend`.
-   - Set `NEXT_PUBLIC_API_URL` to your deployed Render backend URL (no trailing slash).
-   - Deploy and tighten `CORS_ORIGINS` on Render to your `https://<your-app>.vercel.app` domain.
+1. **Backend (Render)**: Create a Web Service using `render.yaml`, set `GEMINI_API_KEY`, `APIFY_API_TOKEN`, `SERPER_API_KEY`, and `GROQ_API_KEY`, and verify `/api/health`.
+2. **Frontend (Vercel)**: Import the repo with **Root Directory** set to `frontend`, set `NEXT_PUBLIC_API_URL` to your Render backend URL, and restrict `CORS_ORIGINS` on Render to your Vercel domain.
 
-## Configuration (`.env`)
-| Variable | Required | Default | Purpose |
-|---|---|---|---|
-| `GEMINI_API_KEY` | Yes | — | Stage 5 semantic embeddings & Stage 4 fallback |
-| `APIFY_API_TOKEN` | For `live_api` / `supplied_urls` | — | Stage 3 cookie-less comments & Stage 2 SERP fallback |
-| `SERPER_API_KEY` | Recommended (`live_api`) | — | Fast (`~1–3s`) concurrent Stage 2 Google SERP discovery |
-| `GROQ_API_KEY` | Recommended | — | High-speed concurrent Stage 4 structured profile extraction |
-| `SERPER_GL` | No | `""` | Optional two-letter Google region code (e.g., `in`, `us`) |
-| `CORS_ORIGINS` | No | `*` | Allowed frontend origins for deployed `api.py` |
-| `GROQ_MODEL` | No | `openai/gpt-oss-120b` | Primary Groq LLM (auto-rotates on 429 TPM / errors) |
-| `LLM_MODEL` | No | `gemini-3.5-flash-lite` | Primary Gemini LLM fallback |
-| `MAX_COMMENTS_PER_POST` | No | `40` | Max comments fetched per post |
-| `ANALYSIS_BATCH_SIZE` | No | `12` | Profiles per concurrent LLM batch |
-| `ANALYSIS_MAX_WORKERS` | No | `3` | Concurrent LLM batch workers |
-| `ENABLE_CACHE` / `CACHE_TTL_SECS` | No | `true` / `3600` | Local TTL cache for repeat runs & profile reuse |
+---
 
 ## Responsible Access & Data Governance
-- **No unauthorized scraping or auth/CAPTCHA bypass**: Uses Serper public search / cookie-less Apify public actors (`harvestapi~linkedin-post-comments`, `apify~google-search-scraper`), user-supplied URLs, or the labelled reference dataset.
-- **Data minimization**: Only outreach-relevant public metadata (`name`, `profile_url`, `current_role`, `organization`, `location`, `school_ecosystem_indicators`, `commented_posts`) is retained.
-- **Retention**: Exports are intended for short-lived outreach triage (`DATA_RETENTION_DAYS = 30`).
 
-See [docs/TECHNICAL_NOTE.md](docs/TECHNICAL_NOTE.md) for the full technical write-up on architecture, ranking methodology, schemas, and production path.
+- **No auth/CAPTCHA bypass**: Relies on cookie-less Apify public actors, public search indices via Serper, user-supplied post URLs, or the labelled offline fixture.
+- **Data minimization & retention**: Retains outreach-relevant public metadata only (`ALLOWED_OUTREACH_FIELDS` in [src/config.py](file:///d:/projects/LinkedIn%20Discovery/src/config.py)) with a 30-day export retention policy (`DATA_RETENTION_DAYS = 30`).
+
+See [docs/TECHNICAL_NOTE.md](file:///d:/projects/LinkedIn%20Discovery/docs/TECHNICAL_NOTE.md) for architecture and scoring methodology details.

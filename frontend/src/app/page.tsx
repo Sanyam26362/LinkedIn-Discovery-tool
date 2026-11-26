@@ -34,7 +34,7 @@ export default function HomePage() {
   const [wizardStep, setWizardStep] = useState<WizardStep>(1);
   const [phrase, setPhrase] = useState("K12 B2B Sales");
   const [suppliedUrlsText, setSuppliedUrlsText] = useState("");
-  const [useCache, setUseCache] = useState(true);
+  const [useCache, setUseCache] = useState(false);
   const [isRunning, setIsRunning] = useState(false);
   const [progress, setProgress] = useState<ProgressEvent | null>(null);
   const [errorMsg, setErrorMsg] = useState<string | null>(null);
