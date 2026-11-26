@@ -2,14 +2,17 @@ from concurrent.futures import ThreadPoolExecutor
 import json
 import re
 from datetime import datetime, timedelta, timezone
-from urllib.parse import quote_plus
+from urllib.parse import quote_plus, urlparse
 import httpx
 from src.apify_client import run_apify_actor_and_fetch_items
 from src.cache import build_cache_key, get_cached_json, set_cached_json
 from src.config import (
     APIFY_API_TOKEN,
     APIFY_GOOGLE_SEARCH_ACTOR,
+    APIFY_LINKEDIN_POST_SEARCH_ACTOR,
     APIFY_POLL_TIMEOUT_SECS,
+    LINKEDIN_SEARCH_POSTED_LIMIT,
+    LINKEDIN_SEARCH_SORT_BY,
     SAMPLE_DATASET_PATH,
     SERPER_API_KEY,
     SERPER_GL,
@@ -50,6 +53,48 @@ def _is_linkedin_post_url(url: str) -> bool:
         or "linkedin.com/feed/update/" in lowered
         or "linkedin.com/pulse/" in lowered
     )
+
+
+def _is_lnkd_short_url(url: str) -> bool:
+    cleaned = url.strip()
+    if not cleaned:
+        return False
+    if "://" not in cleaned:
+        cleaned = f"https://{cleaned}"
+    parsed = urlparse(cleaned)
+    host = parsed.netloc.lower().split(":", 1)[0]
+    return host in {"lnkd.in", "www.lnkd.in"} and len(parsed.path.strip("/")) > 0
+
+
+def _resolve_lnkd_short_url(url: str) -> str:
+    """Resolve a LinkedIn `lnkd.in` short link to its canonical LinkedIn post URL."""
+    target = url.strip()
+    if "://" not in target:
+        target = f"https://{target}"
+
+    headers = {"User-Agent": "Mozilla/5.0"}
+    try:
+        with httpx.Client(follow_redirects=True, timeout=10.0, headers=headers) as client:
+            resp = client.head(target)
+            final_url = str(resp.url)
+            if _is_linkedin_post_url(final_url):
+                return normalize_linkedin_url(final_url)
+
+            get_resp = client.get(target)
+            final_get_url = str(get_resp.url)
+            if _is_linkedin_post_url(final_get_url):
+                return normalize_linkedin_url(final_get_url)
+
+            match = re.search(
+                r"https://(?:[a-z]+\.)?linkedin\.com/(?:posts|feed/update|pulse)/[^\"'<\s]+",
+                get_resp.text,
+                flags=re.IGNORECASE,
+            )
+            if match:
+                return normalize_linkedin_url(match.group(0))
+    except Exception:
+        return url
+    return url
 
 
 _STANDARD_DATE_FORMATS: tuple[str, ...] = (
@@ -495,6 +540,204 @@ def discover_related_companies(
     return companies[:limit]
 
 
+def _format_posted_at_date(item: dict, clean_url: str) -> str:
+    """Resolve YYYY-MM-DD publication date from Apify `postedAt` or URL Snowflake ID."""
+    posted_at = item.get("postedAt") or {}
+    raw_date = str(posted_at.get("date") or "").strip()
+    if raw_date:
+        try:
+            iso_dt = datetime.fromisoformat(raw_date.replace("Z", "+00:00"))
+            return iso_dt.astimezone(timezone.utc).strftime("%Y-%m-%d")
+        except ValueError:
+            date_prefix = re.match(r"^(\d{4}-\d{2}-\d{2})", raw_date)
+            if date_prefix:
+                return date_prefix.group(1)
+
+    raw_ts = posted_at.get("timestamp")
+    if raw_ts is not None:
+        try:
+            ts_val = float(raw_ts)
+            if ts_val > 1e12:
+                ts_val /= 1000.0
+            if _MIN_LINKEDIN_EPOCH_SECS <= ts_val <= _MAX_LINKEDIN_EPOCH_SECS:
+                return datetime.fromtimestamp(ts_val, tz=timezone.utc).strftime("%Y-%m-%d")
+        except (TypeError, ValueError, OSError, OverflowError):
+            pass
+
+    decoded = decode_linkedin_post_timestamp(clean_url)
+    if decoded is not None:
+        return decoded.strftime("%Y-%m-%d")
+
+    return str(posted_at.get("postedAgoShort") or "Recent").strip() or "Recent"
+
+
+def _apify_relevance_tier(phrase: str, text_blob: str) -> int:
+    """Score how well a LinkedIn post matches the search phrase (0=off-topic, 3=exact)."""
+    norm_phrase = _normalize_match_text(phrase)
+    norm_blob = _normalize_match_text(text_blob)
+    if not norm_phrase or not norm_blob:
+        return 0
+    if norm_phrase in norm_blob:
+        return 3
+    tokens = [t for t in norm_phrase.split() if len(t) >= 2]
+    if not tokens:
+        return 0
+    matched = sum(1 for t in tokens if re.search(rf"\b{re.escape(t)}\b", norm_blob))
+    if matched == len(tokens):
+        return 2
+    if len(tokens) >= 2 and matched >= max(2, (len(tokens) + 1) // 2):
+        return 2
+    if matched >= 1:
+        return 1
+    return 0
+
+
+def _parse_apify_linkedin_posts_scored(
+    items: list[dict],
+    phrase: str,
+    limit: int = TARGET_POST_COUNT,
+) -> list[tuple[DiscoveredPost, int, int]]:
+    """Parse `harvestapi~linkedin-post-search` items sorted by topic match and comment count."""
+    candidates: list[tuple[tuple[int, int, int, int, int, float], DiscoveredPost, int, int]] = []
+    seen_urls: set[str] = set()
+    seen_ids: set[str] = set()
+
+    for item in items:
+        raw_type = item.get("type")
+        if raw_type is not None and str(raw_type).strip().lower() != "post":
+            continue
+
+        raw_url = str(item.get("linkedinUrl") or item.get("shareLinkedinUrl") or "").strip()
+        if not raw_url:
+            continue
+
+        clean_url = normalize_linkedin_url(raw_url)
+        raw_id = str(item.get("id") or item.get("entityId") or "").strip()
+        url_id = extract_activity_id(clean_url, len(candidates) + 1)
+        post_id = raw_id or url_id
+
+        dedup_ids = {i for i in (post_id, url_id) if i and not i.startswith("post_")}
+        if clean_url in seen_urls or any(did in seen_ids for did in dedup_ids):
+            continue
+        seen_urls.add(clean_url)
+        seen_ids.update(dedup_ids)
+
+        author_obj = item.get("author") or {}
+        author_name = (
+            str(author_obj.get("name") or "").strip()
+            or _extract_author_name({}, clean_url)
+        )
+        published_date = _format_posted_at_date(item, clean_url)
+        raw_content = re.sub(r"\s+", " ", str(item.get("content") or "")).strip()
+        snippet = (raw_content or phrase)[:320]
+
+        post = DiscoveredPost(
+            post_id=post_id,
+            post_url=clean_url,
+            author_name=author_name,
+            published_date=published_date,
+            snippet=snippet,
+            source_mode=DataSourceMode.LIVE_API,
+        )
+
+        engagement = item.get("engagement") or {}
+        try:
+            comment_count = int(engagement.get("comments") or 0)
+        except (TypeError, ValueError):
+            comment_count = 0
+        try:
+            like_count = int(engagement.get("likes") or 0)
+        except (TypeError, ValueError):
+            like_count = 0
+
+        tier = _apify_relevance_tier(phrase, f"{author_name} {raw_content} {clean_url}")
+        decoded_dt = decode_linkedin_post_timestamp(clean_url)
+        sort_ts = decoded_dt.timestamp() if decoded_dt else 0.0
+
+        sort_key = (
+            1 if tier >= 2 else 0,
+            1 if tier >= 1 else 0,
+            1 if comment_count > 0 else 0,
+            comment_count,
+            like_count,
+            sort_ts,
+        )
+        candidates.append((sort_key, post, comment_count, tier))
+
+    # Drop completely off-topic noise (tier == 0) whenever matching posts exist.
+    if any(tier >= 1 for _, _, _, tier in candidates):
+        candidates = [entry for entry in candidates if entry[3] >= 1]
+
+    candidates.sort(key=lambda entry: entry[0], reverse=True)
+    return [(post, comment_count, tier) for _, post, comment_count, tier in candidates[:limit]]
+
+
+def _parse_apify_linkedin_posts(
+    items: list[dict],
+    phrase: str,
+    limit: int = TARGET_POST_COUNT,
+) -> list[DiscoveredPost]:
+    """Parse `harvestapi~linkedin-post-search` items, preferring relevant commented posts."""
+    return [post for post, _, _ in _parse_apify_linkedin_posts_scored(items, phrase=phrase, limit=limit)]
+
+
+def _search_apify_linkedin_posts_scored(
+    phrase: str,
+    apify_token: str,
+    limit: int = TARGET_POST_COUNT,
+) -> list[tuple[DiscoveredPost, int, int]]:
+    """Query LinkedIn native post search via cookie-less `harvestapi~linkedin-post-search`."""
+    sort_by = LINKEDIN_SEARCH_SORT_BY.strip() or "relevance"
+    posted_limit = LINKEDIN_SEARCH_POSTED_LIMIT.strip()
+
+    payload: dict = {
+        "searchQueries": [phrase],
+        "sortBy": sort_by,
+        "maxPosts": max(25, limit * 2),
+        "scrapeComments": False,
+        "scrapeReactions": False,
+    }
+    if posted_limit and posted_limit.lower() != "any":
+        payload["postedLimit"] = posted_limit
+
+    items = run_apify_actor_and_fetch_items(
+        actor_id=APIFY_LINKEDIN_POST_SEARCH_ACTOR,
+        payload=payload,
+        token=apify_token,
+        timeout_secs=APIFY_POLL_TIMEOUT_SECS,
+    )
+    scored = _parse_apify_linkedin_posts_scored(items, phrase=phrase, limit=max(limit, 25))
+    commented_count = sum(1 for _, cc, _ in scored if cc > 0)
+
+    # For niche terms/brands or low-comment 3-month slices, retry once without `postedLimit`
+    # so older active discussions with comments are also captured.
+    needed_commented = min(limit, 5)
+    if (len(scored) < limit or commented_count < needed_commented) and "postedLimit" in payload:
+        broad_payload = {k: v for k, v in payload.items() if k != "postedLimit"}
+        retry_items = run_apify_actor_and_fetch_items(
+            actor_id=APIFY_LINKEDIN_POST_SEARCH_ACTOR,
+            payload=broad_payload,
+            token=apify_token,
+            timeout_secs=APIFY_POLL_TIMEOUT_SECS,
+        )
+        scored = _parse_apify_linkedin_posts_scored(
+            items + retry_items,
+            phrase=phrase,
+            limit=max(limit, 25),
+        )
+
+    return scored[:limit]
+
+
+def _search_apify_linkedin_posts(
+    phrase: str,
+    apify_token: str,
+    limit: int = TARGET_POST_COUNT,
+) -> list[DiscoveredPost]:
+    """Query LinkedIn native post search via cookie-less `harvestapi~linkedin-post-search`."""
+    return [post for post, _, _ in _search_apify_linkedin_posts_scored(phrase, apify_token, limit=limit)]
+
+
 def _search_apify_serp_pages(phrase: str, apify_token: str) -> list[dict]:
     """Query public Google SERP index via cookie-less Apify actor (fallback when Serper is absent)."""
     payload = {
@@ -510,6 +753,71 @@ def _search_apify_serp_pages(phrase: str, apify_token: str) -> list[dict]:
     )
 
 
+def _merge_post_pools(
+    primary: list[DiscoveredPost],
+    secondary: list[DiscoveredPost],
+    limit: int,
+) -> list[DiscoveredPost]:
+    """Interleave and deduplicate two post lists up to `limit` items."""
+    merged: list[DiscoveredPost] = []
+    seen_urls: set[str] = set()
+    seen_ids: set[str] = set()
+
+    def _try_add(post: DiscoveredPost) -> bool:
+        if post.post_url in seen_urls:
+            return False
+        if post.post_id and not post.post_id.startswith("post_") and post.post_id in seen_ids:
+            return False
+        seen_urls.add(post.post_url)
+        if post.post_id and not post.post_id.startswith("post_"):
+            seen_ids.add(post.post_id)
+        merged.append(post)
+        return True
+
+    max_len = max(len(primary), len(secondary))
+    for i in range(max_len):
+        if len(merged) >= limit:
+            break
+        if i < len(primary):
+            _try_add(primary[i])
+        if len(merged) >= limit:
+            break
+        if i < len(secondary):
+            _try_add(secondary[i])
+
+    return merged[:limit]
+
+
+def _topup_serper_pages(
+    serp_pages: list[dict],
+    phrase: str,
+    serper_key: str,
+    gl: str,
+    limit: int,
+) -> list[DiscoveredPost]:
+    """Parse Serper pages and run an undated fallback query when recent hits < `limit`."""
+    posts = parse_serp_pages_to_posts(serp_pages, phrase=phrase, limit=limit)
+    if len(posts) < limit:
+        try:
+            headers = {"X-API-KEY": serper_key.strip(), "Content-Type": "application/json"}
+            topup_q = (
+                f"site:linkedin.com/posts {phrase}"
+                if len(phrase.split()) > 1
+                else f'site:linkedin.com/posts "{phrase}"'
+            )
+            topup_body: dict = {"q": topup_q, "num": 10}
+            if gl:
+                topup_body["gl"] = gl
+            with httpx.Client(headers=headers, timeout=12.0) as client:
+                topup_resp = client.post(_SERPER_ENDPOINT, json=topup_body)
+                if topup_resp.status_code == 200:
+                    combined = list(serp_pages) + [topup_resp.json()]
+                    posts = parse_serp_pages_to_posts(combined, phrase=phrase, limit=limit)
+        except Exception:
+            pass
+    return posts
+
+
 def discover_posts_live_with_meta(
     phrase: str,
     apify_token: str | None = None,
@@ -517,17 +825,23 @@ def discover_posts_live_with_meta(
     serper_api_key: str | None = None,
     use_cache: bool = True,
 ) -> tuple[list[DiscoveredPost], str, list[str]]:
-    """Discover recent LinkedIn posts using Serper.dev (fast) with Apify SERP fallback."""
+    """Discover LinkedIn posts by combining Apify LinkedIn Search and Serper Google SERP."""
     resolved_serper = (SERPER_API_KEY if serper_api_key is None else serper_api_key).strip()
     resolved_apify = (APIFY_API_TOKEN if apify_token is None else apify_token).strip()
     warnings: list[str] = []
 
+    sort_by = LINKEDIN_SEARCH_SORT_BY.strip().lower() or "relevance"
+    posted_limit = LINKEDIN_SEARCH_POSTED_LIMIT.strip().lower() or "any"
     gl = _resolved_serper_gl()
     cache_payload = {
+        "v": 2,
         "phrase": phrase.lower(),
         "limit": limit,
+        "sort_by": sort_by,
+        "posted_limit": posted_limit,
         "gl": gl,
-        "recency": "after:90d+365d",
+        "has_apify": bool(resolved_apify),
+        "has_serper": bool(resolved_serper),
     }
 
     if use_cache:
@@ -540,58 +854,106 @@ def discover_posts_live_with_meta(
 
     if not resolved_serper and not resolved_apify:
         raise ValueError(
-            "Either SERPER_API_KEY or APIFY_API_TOKEN is required for Live API post discovery."
+            "Either APIFY_API_TOKEN or SERPER_API_KEY is required for Live API post discovery."
         )
 
+    apify_posts: list[DiscoveredPost] = []
+    serper_posts: list[DiscoveredPost] = []
     serp_pages: list[dict] = []
     provider_used = ""
+    apify_fatal_exc: Exception | None = None
+    apify_err: Exception | None = None
+    serper_err: Exception | None = None
 
-    if resolved_serper:
+    # 1. Run Apify LinkedIn Search and Serper.dev concurrently when both are configured
+    #    so we capture both fresh commented threads and high-engagement indexed posts.
+    if resolved_apify and resolved_serper:
+        with ThreadPoolExecutor(max_workers=2) as pool:
+            apify_fut = pool.submit(_search_apify_linkedin_posts, phrase, resolved_apify, limit)
+            serper_fut = pool.submit(_search_serper_pages, phrase, resolved_serper)
+            try:
+                apify_posts = apify_fut.result()
+            except Exception as exc:
+                apify_err = exc
+            try:
+                serp_pages = serper_fut.result()
+            except Exception as exc:
+                serper_err = exc
+    elif resolved_apify:
+        try:
+            apify_posts = _search_apify_linkedin_posts(phrase, resolved_apify, limit=limit)
+        except Exception as exc:
+            apify_err = exc
+    elif resolved_serper:
         try:
             serp_pages = _search_serper_pages(phrase, resolved_serper)
-            provider_used = "Serper.dev"
-        except ValueError:
-            if not resolved_apify:
-                raise
-            warnings.append("Serper authentication failed; fell back to Apify Google SERP.")
         except Exception as exc:
-            if not resolved_apify:
-                raise RuntimeError(f"Serper search failed: {exc}") from exc
+            serper_err = exc
+
+    if apify_err is not None:
+        err_msg = str(apify_err)
+        if isinstance(apify_err, ValueError):
+            apify_fatal_exc = apify_err
+            if not resolved_serper:
+                raise apify_err
+            warnings.append("Apify authentication failed; fell back to Serper.dev.")
+        else:
+            if "402" in err_msg or "quota" in err_msg.lower() or "credit" in err_msg.lower():
+                apify_fatal_exc = apify_err
+            if not resolved_serper:
+                if apify_fatal_exc is not None:
+                    raise apify_err
+                warnings.append(
+                    f"Apify LinkedIn Search failed ({err_msg[:80]}); fell back to Apify Google SERP."
+                )
+            else:
+                warnings.append(
+                    f"Apify LinkedIn Search failed ({err_msg[:80]}); fell back to Serper.dev."
+                )
+
+    if serper_err is not None:
+        if isinstance(serper_err, ValueError):
+            if not apify_posts and (not resolved_apify or apify_fatal_exc is not None):
+                raise serper_err
             warnings.append(
-                f"Serper search failed ({str(exc)[:80]}); fell back to Apify Google SERP."
+                "Serper authentication failed; fell back to Apify Google SERP."
+                if not apify_posts and apify_fatal_exc is None
+                else "Serper authentication failed; using remaining discovery sources."
+            )
+        else:
+            if not apify_posts and (not resolved_apify or apify_fatal_exc is not None):
+                raise RuntimeError(f"Serper search failed: {serper_err}") from serper_err
+            warnings.append(
+                f"Serper search failed ({str(serper_err)[:80]}); fell back to Apify Google SERP."
+                if not apify_posts and apify_fatal_exc is None
+                else f"Serper search failed ({str(serper_err)[:80]}); using remaining discovery sources."
             )
 
-    if not serp_pages and resolved_apify:
-        serp_pages = _search_apify_serp_pages(phrase, resolved_apify)
-        provider_used = "Apify SERP"
+    if serp_pages and resolved_serper:
+        serper_posts = _topup_serper_pages(serp_pages, phrase, resolved_serper, gl, limit)
 
-    posts = parse_serp_pages_to_posts(serp_pages, phrase=phrase, limit=limit)
-    if (
-        len(posts) < limit
-        and provider_used == "Serper.dev"
-        and resolved_serper
-    ):
-        # Fallback for scarce niche phrases with fewer than `limit` posts in the last year.
-        try:
-            headers = {"X-API-KEY": resolved_serper, "Content-Type": "application/json"}
-            topup_body: dict = {
-                "q": f"(site:linkedin.com/posts OR site:linkedin.com/feed/update) {phrase}",
-                "num": 10,
-            }
-            if gl:
-                topup_body["gl"] = gl
-            with httpx.Client(headers=headers, timeout=12.0) as client:
-                topup_resp = client.post(_SERPER_ENDPOINT, json=topup_body)
-                if topup_resp.status_code == 200:
-                    serp_pages = list(serp_pages) + [topup_resp.json()]
-                    posts = parse_serp_pages_to_posts(serp_pages, phrase=phrase, limit=limit)
-        except Exception:
-            pass
+    if apify_posts and serper_posts:
+        posts = _merge_post_pools(apify_posts, serper_posts, limit=limit)
+        provider_used = "Apify + Serper.dev"
+    elif apify_posts:
+        posts = apify_posts[:limit]
+        provider_used = "Apify LinkedIn Search"
+    elif serper_posts:
+        posts = serper_posts[:limit]
+        provider_used = "Serper.dev"
+    else:
+        posts = []
+
+    # 3. Last fallback: Cookie-less Apify Google SERP actor when both primary paths yielded nothing
+    if not posts and resolved_apify and apify_fatal_exc is None:
+        serp_pages = _search_apify_serp_pages(phrase, resolved_apify)
+        posts = parse_serp_pages_to_posts(serp_pages, phrase=phrase, limit=limit)
+        provider_used = "Apify SERP"
 
     if not posts:
         raise RuntimeError(
             f"No public LinkedIn post URLs were found for '{phrase}'. "
-            "Try a broader phrase or switch to Supplied Post URLs / Test Dataset mode."
+            "Try a broader phrase or switch to Paste URLs mode."
         )
 
     if use_cache:
@@ -627,11 +989,15 @@ def discover_posts_live(
 
 
 def load_supplied_posts(post_urls: list[str], phrase: str) -> list[DiscoveredPost]:
-    """Build DiscoveredPost records from user-supplied LinkedIn post URLs."""
+    """Build DiscoveredPost records from user-supplied LinkedIn post URLs (including lnkd.in links)."""
     posts: list[DiscoveredPost] = []
     seen: set[str] = set()
     for raw_url in post_urls:
         clean_url = normalize_linkedin_url(raw_url)
+        if not clean_url:
+            continue
+        if _is_lnkd_short_url(clean_url):
+            clean_url = normalize_linkedin_url(_resolve_lnkd_short_url(clean_url))
         if not clean_url or clean_url in seen:
             continue
         if not _is_linkedin_post_url(clean_url):
@@ -651,7 +1017,7 @@ def load_supplied_posts(post_urls: list[str], phrase: str) -> list[DiscoveredPos
     if not posts:
         raise ValueError(
             "Please supply at least one valid LinkedIn post URL "
-            "(containing linkedin.com/posts/, linkedin.com/feed/update/, or linkedin.com/pulse/)."
+            "(linkedin.com/posts/, linkedin.com/feed/update/, linkedin.com/pulse/, or lnkd.in/)."
         )
     return posts[:TARGET_POST_COUNT]
 

@@ -3,6 +3,7 @@ import time
 from collections.abc import Callable
 from src.config import TARGET_POST_COUNT
 from src.schemas import DataSourceMode, PipelineRunResult
+from src.similar_profiles import discover_similar_profiles
 from src.stage1_input import parse_search_phrase
 from src.stage2_discovery import (
     discover_posts_live_with_meta,
@@ -69,7 +70,7 @@ def run_pipeline(
         posts = load_supplied_posts(supplied_urls or [], phrase=phrase)
         discovery_provider = "Supplied URLs"
     else:
-        posts = load_sample_posts(limit=TARGET_POST_COUNT)
+        posts = load_sample_posts(limit=5)
         discovery_provider = "Test Dataset"
     stage_timings["stage2_discovery"] = round(time.perf_counter() - t0, 2)
 
@@ -86,7 +87,7 @@ def run_pipeline(
     warnings.extend(stage3_warnings)
     stage_timings["stage3_extraction"] = round(time.perf_counter() - t0, 2)
 
-    if len(posts) < TARGET_POST_COUNT:
+    if mode == DataSourceMode.LIVE_API and len(posts) < TARGET_POST_COUNT:
         warnings.append(
             f"Discovered {len(posts)} post(s) instead of target {TARGET_POST_COUNT} for '{phrase}'."
         )
@@ -117,6 +118,7 @@ def run_pipeline(
             analyses,
             gemini_api_key=gemini_api_key,
             use_cache=use_cache,
+            warnings_out=warnings,
         )
     else:
         notify(5, "Skipping ranking (0 commenters extracted).")
@@ -151,6 +153,21 @@ def run_pipeline(
             limit=5,
         )
 
+    # Only generate Similar Profiles when the user pasted LinkedIn post URL(s).
+    if mode == DataSourceMode.SUPPLIED_URLS and ranked:
+        similar_profiles, sim_warnings = discover_similar_profiles(
+            phrase=phrase,
+            seed_influencers=ranked,
+            exclude_urls={inf.profile_url for inf in ranked},
+            serper_api_key=serper_api_key,
+            gemini_api_key=gemini_api_key,
+            use_cache=use_cache,
+            limit=15,
+        )
+        warnings.extend(sim_warnings)
+    else:
+        similar_profiles = []
+
     stage_timings["stage6_assembly"] = round(time.perf_counter() - t0, 2)
     total_duration = round(time.perf_counter() - pipeline_start, 2)
 
@@ -165,6 +182,7 @@ def run_pipeline(
         total_unique_commenters=len(ranked),
         posts=posts,
         ranked_influencers=ranked,
+        similar_profiles=similar_profiles,
         related_companies=related_companies,
         warnings=warnings,
     )

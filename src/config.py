@@ -44,7 +44,10 @@ EMBEDDING_DIMENSIONS: int = 768
 EMBEDDING_BATCH_SIZE: int = 100
 GEMINI_REQUEST_TIMEOUT_MS: int = int(os.getenv("GEMINI_REQUEST_TIMEOUT_MS", "45000"))
 
-# Apify Actor IDs (Cookie-less public index fallback & comment retrieval)
+# Apify Actor IDs (Cookie-less LinkedIn post search, comments & SERP fallback)
+APIFY_LINKEDIN_POST_SEARCH_ACTOR: str = "harvestapi~linkedin-post-search"
+LINKEDIN_SEARCH_SORT_BY: str = os.getenv("LINKEDIN_SEARCH_SORT_BY", "relevance")  # "relevance" or "date"
+LINKEDIN_SEARCH_POSTED_LIMIT: str = os.getenv("LINKEDIN_SEARCH_POSTED_LIMIT", "3months")  # "week", "month", "3months", "6months", "year"
 APIFY_GOOGLE_SEARCH_ACTOR: str = "apify~google-search-scraper"
 APIFY_LINKEDIN_COMMENTS_ACTOR: str = "harvestapi~linkedin-post-comments"
 APIFY_PROFILE_SCRAPER_MODE: str = os.getenv("APIFY_PROFILE_SCRAPER_MODE", "short")
@@ -55,8 +58,8 @@ APIFY_SCRAPE_REPLIES: bool = (
 
 # Pipeline Limits & Concurrency
 DEFAULT_SEARCH_PHRASE: str = "K12 B2B Sales"
-TARGET_POST_COUNT: int = 5
-MAX_COMMENTS_PER_POST: int = int(os.getenv("MAX_COMMENTS_PER_POST", "40"))
+TARGET_POST_COUNT: int = int(os.getenv("TARGET_POST_COUNT", "10"))
+MAX_COMMENTS_PER_POST: int = int(os.getenv("MAX_COMMENTS_PER_POST", "60"))
 ANALYSIS_BATCH_SIZE: int = int(os.getenv("ANALYSIS_BATCH_SIZE", "12"))
 ANALYSIS_MAX_WORKERS: int = int(os.getenv("ANALYSIS_MAX_WORKERS", "3"))
 

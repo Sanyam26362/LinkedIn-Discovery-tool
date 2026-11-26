@@ -157,11 +157,41 @@ def _embed_all_same_model(
     raise RuntimeError(f"All Gemini embedding models failed: {last_exc}") from last_exc
 
 
+_LEXICAL_STOPWORDS = frozenset({
+    "the", "and", "for", "with", "from", "that", "this", "into", "across", "who",
+    "role", "organization", "location", "headline", "comments", "ideal", "contact",
+})
+
+
+def _lexical_persona_scores(persona_text: str, candidate_texts: list[str]) -> list[float]:
+    """Deterministic lexical fallback score [0, 100] when Gemini embedding quota is throttled."""
+    def _tokens(txt: str) -> set[str]:
+        return {
+            t for t in re.findall(r"[a-z0-9]{2,}", txt.lower()) if t not in _LEXICAL_STOPWORDS
+        }
+
+    persona_toks = _tokens(persona_text)
+    if not persona_toks:
+        return [50.0 for _ in candidate_texts]
+
+    scores: list[float] = []
+    for txt in candidate_texts:
+        cand_toks = _tokens(txt)
+        if not cand_toks:
+            scores.append(25.0)
+            continue
+        overlap = len(persona_toks & cand_toks)
+        recall = overlap / max(1, min(len(persona_toks), 14))
+        scores.append(round(min(92.0, max(20.0, recall * 100.0)), 2))
+    return scores
+
+
 def rank_commenters(
     commenters: list[DeduplicatedCommenter],
     analyses: dict[str, ProfileAnalysis],
     gemini_api_key: str | None = None,
     use_cache: bool = True,
+    warnings_out: list[str] | None = None,
 ) -> list[RankedInfluencer]:
     """Combine dense embedding cosine similarity, LLM contextual score, and multi-post engagement."""
     if not commenters:
@@ -200,27 +230,37 @@ def rank_commenters(
             evidence_parts.append(f"Comments: {comments_joined}")
         candidate_texts.append(". ".join(evidence_parts) if evidence_parts else f"Profile: {c.name}")
 
-    vectors = _embed_all_same_model(
-        [target_persona_text] + candidate_texts,
-        client=client,
-        use_cache=use_cache,
-    )
-    if len(vectors) != len(commenters) + 1:
-        raise RuntimeError(
-            f"Embedding vector count mismatch: expected {len(commenters) + 1}, got {len(vectors)}."
+    embedding_scores: list[float] | None = None
+    try:
+        vectors = _embed_all_same_model(
+            [target_persona_text] + candidate_texts,
+            client=client,
+            use_cache=use_cache,
         )
-
-    persona_vec = vectors[0]
-    candidate_vecs = vectors[1:]
+        if len(vectors) != len(commenters) + 1:
+            raise RuntimeError(
+                f"Embedding vector count mismatch: expected {len(commenters) + 1}, got {len(vectors)}."
+            )
+        persona_vec = vectors[0]
+        candidate_vecs = vectors[1:]
+        embedding_scores = []
+        for cand_vec in candidate_vecs:
+            # Calibrate anisotropic cosine similarity by mapping [0.62, 0.88] -> [0.0, 100.0]
+            raw_cos = float(np.dot(persona_vec, cand_vec))
+            calibrated = float(np.clip((raw_cos - 0.62) / (0.88 - 0.62), 0.0, 1.0))
+            embedding_scores.append(round(calibrated * 100.0, 2))
+    except ValueError:
+        raise
+    except Exception as exc:
+        if warnings_out is not None:
+            warnings_out.append(
+                f"Gemini embeddings temporarily throttled ({str(exc)[:90]}); used lexical persona similarity fallback."
+            )
+        embedding_scores = _lexical_persona_scores(target_persona_text, candidate_texts)
 
     scored_items: list[RankedInfluencer] = []
-    for commenter, cand_vec in zip(commenters, candidate_vecs):
+    for commenter, embedding_score in zip(commenters, embedding_scores):
         analysis = analyses[commenter.profile_url]
-
-        # Calibrate anisotropic cosine similarity by mapping [0.62, 0.88] -> [0.0, 100.0]
-        raw_cos = float(np.dot(persona_vec, cand_vec))
-        calibrated = float(np.clip((raw_cos - 0.62) / (0.88 - 0.62), 0.0, 1.0))
-        embedding_score = round(calibrated * 100.0, 2)
 
         extra_posts = max(0, commenter.engagement_count - 1)
         engagement_bonus = min(

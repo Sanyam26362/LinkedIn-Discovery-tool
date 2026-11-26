@@ -94,6 +94,19 @@ def main() -> None:
             f"{', '.join(t.post_url for t in inf.commented_posts)}\n"
         )
 
+    if result.similar_profiles:
+        print("\n=== SIMILAR LINKEDIN PROFILES (LOOKALIKES) ===")
+        for sp in result.similar_profiles:
+            print(
+                f"#{sp.rank} {sp.name} | Match: {sp.similarity_score:.1f}% "
+                f"(Seed: {sp.seed_similarity:.0f}%, Persona: {sp.persona_similarity:.0f}%) "
+                f"| Similar to {sp.matched_seed_name}"
+            )
+            print(f"   Role: {sp.headline or sp.current_role}")
+            print(f"   Profile: {sp.profile_url}")
+            if sp.match_reason:
+                print(f"   Why: {sp.match_reason}")
+
     if result.related_companies:
         print("\n=== RELATED COMPANIES ===")
         for idx, comp in enumerate(result.related_companies, start=1):

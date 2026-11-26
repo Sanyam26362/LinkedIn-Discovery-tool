@@ -143,6 +143,29 @@ class RankedInfluencer(BaseModel):
     commented_posts: list[PostTrace]
 
 
+class SimilarProfile(BaseModel):
+    rank: int
+    name: str
+    profile_url: str
+    headline: str = Field(default="")
+    current_role: str = Field(default="Not publicly listed")
+    organization: str = Field(default="Not publicly listed")
+    location: str = Field(default="Not publicly listed")
+    snippet: str = Field(default="")
+    matched_seed_name: str
+    matched_seed_url: str
+    matched_seed_role: str = Field(default="")
+    similarity_score: float = Field(..., ge=0.0, le=100.0)
+    seed_similarity: float = Field(default=0.0, ge=0.0, le=100.0)
+    persona_similarity: float = Field(default=0.0, ge=0.0, le=100.0)
+    match_reason: str = Field(default="")
+
+    @field_validator("profile_url", "matched_seed_url")
+    @classmethod
+    def clean_urls(cls, v: str) -> str:
+        return normalize_linkedin_url(v)
+
+
 class PipelineRunResult(BaseModel):
     search_phrase: str
     generated_at_utc: str = Field(
@@ -157,5 +180,6 @@ class PipelineRunResult(BaseModel):
     total_unique_commenters: int
     posts: list[DiscoveredPost]
     ranked_influencers: list[RankedInfluencer]
+    similar_profiles: list[SimilarProfile] = Field(default_factory=list)
     related_companies: list[RelatedCompany] = Field(default_factory=list)
     warnings: list[str] = Field(default_factory=list)

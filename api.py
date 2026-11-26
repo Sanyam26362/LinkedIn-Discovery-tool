@@ -22,7 +22,8 @@ from src.config import (
     SERPER_API_KEY,
 )
 from src.pipeline import run_pipeline
-from src.schemas import DataSourceMode, PipelineRunResult
+from src.schemas import DataSourceMode, PipelineRunResult, RankedInfluencer
+from src.similar_profiles import discover_similar_profiles
 from src.stage6_export import result_to_csv_str, result_to_json_str, save_outputs
 
 
@@ -216,12 +217,55 @@ async def export_json(request: Request) -> Response:
         return JSONResponse({"detail": str(exc)}, status_code=400)
 
 
+async def find_similar(request: Request) -> JSONResponse:
+    try:
+        body = await request.json()
+        phrase = str(body.get("phrase") or DEFAULT_SEARCH_PHRASE).strip()
+        raw_seeds = body.get("seed_influencers") or []
+        seeds = [RankedInfluencer(**s) for s in raw_seeds]
+        if not seeds:
+            return JSONResponse({"detail": "At least one seed profile is required."}, status_code=400)
+
+        serper_override = str(body.get("serper_api_key") or "").strip() or None
+        gemini_override = str(body.get("gemini_api_key") or "").strip() or None
+        resolved_serper = (serper_override if serper_override is not None else SERPER_API_KEY).strip()
+        if not resolved_serper:
+            return JSONResponse(
+                {"detail": "SERPER_API_KEY is required to find similar LinkedIn profiles."},
+                status_code=400,
+            )
+
+        exclude_urls = {str(u) for u in (body.get("exclude_urls") or []) if u}
+        limit = max(1, min(20, int(body.get("limit") or 10)))
+        use_cache = bool(body.get("use_cache", ENABLE_CACHE))
+
+        similar_profiles, warnings = await asyncio.to_thread(
+            discover_similar_profiles,
+            phrase=phrase,
+            seed_influencers=seeds,
+            exclude_urls=exclude_urls,
+            serper_api_key=serper_override,
+            gemini_api_key=gemini_override,
+            use_cache=use_cache,
+            limit=limit,
+        )
+        return JSONResponse(
+            {
+                "similar_profiles": [sp.model_dump(mode="json") for sp in similar_profiles],
+                "warnings": warnings,
+            }
+        )
+    except Exception as exc:
+        return JSONResponse({"detail": str(exc)}, status_code=400)
+
+
 routes = [
     Route("/api/health", health, methods=["GET"]),
     Route("/api/config", get_config, methods=["GET"]),
     Route("/api/latest", get_latest, methods=["GET"]),
     Route("/api/discover", discover_sync, methods=["POST"]),
     Route("/api/discover/stream", discover_stream, methods=["POST"]),
+    Route("/api/similar", find_similar, methods=["POST"]),
     Route("/api/export/csv", export_csv, methods=["POST"]),
     Route("/api/export/json", export_json, methods=["POST"]),
 ]
