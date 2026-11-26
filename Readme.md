@@ -5,7 +5,7 @@ An end-to-end 6-stage AI pipeline that discovers recent LinkedIn posts for a tar
 ## Architecture (6 Stages)
 1. **Phrase Input (`src/stage1_input.py`)**: Validates and normalizes the search phrase via Web UI or CLI.
 2. **Post Discovery (`src/stage2_discovery.py`)**: Retrieves 5 recent LinkedIn posts via:
-   - **`live_api`**: Fast concurrent Google SERP lookup via **Serper.dev** (`~1–3s`) with automatic fallback to cookie-less `apify~google-search-scraper`, decoding exact UTC dates (`YYYY-MM-DD`) from LinkedIn Snowflake activity IDs and ranking recent phrase-matching posts.
+   - **`live_api`**: Primary cookie-less LinkedIn post search via Apify `harvestapi~linkedin-post-search` (preferring posts with comments), with automatic fallback to **Serper.dev** Google SERP (`~1–3s`) and cookie-less `apify~google-search-scraper`, decoding exact UTC dates (`YYYY-MM-DD`).
    - **`supplied_urls`**: User-supplied LinkedIn post URLs (up to 5).
    - **`test_dataset`**: Clearly labelled offline reference dataset (`data/sample_dataset.json`).
 3. **Commenter Extraction & Deduplication (`src/stage3_extraction.py`)**: Fetches public top-level post comments (`scrapeReplies=false`) via cookie-less `harvestapi~linkedin-post-comments`, normalizes LinkedIn URLs, deduplicates commenters across posts, and preserves post-to-commenter traceability (`PostTrace`).

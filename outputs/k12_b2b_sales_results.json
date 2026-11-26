@@ -1,943 +1,291 @@
 {
   "search_phrase": "K12 B2B Sales",
-  "generated_at_utc": "2026-11-25T14:16:45.344457+00:00",
-  "source_mode": "live_api",
-  "discovery_provider": "Serper.dev",
+  "generated_at_utc": "2026-11-26T04:20:30.439605+00:00",
+  "source_mode": "supplied_urls",
+  "discovery_provider": "Supplied URLs",
   "llm_model_used": "openai/gpt-oss-120b",
-  "total_duration_secs": 21.01,
+  "total_duration_secs": 27.68,
   "stage_timings_secs": {
     "stage1_input": 0.0,
-    "stage2_discovery": 6.81,
-    "stage3_extraction": 7.24,
-    "stage4_ai_analysis": 4.27,
-    "stage5_ranking": 2.69,
-    "stage6_assembly": 0.0
+    "stage2_discovery": 1.19,
+    "stage3_extraction": 5.87,
+    "stage4_ai_analysis": 1.5,
+    "stage5_ranking": 8.52,
+    "stage6_assembly": 10.59
   },
-  "total_posts": 5,
-  "total_unique_commenters": 35,
+  "total_posts": 1,
+  "total_unique_commenters": 2,
   "posts": [
     {
-      "post_id": "7496909221683171328",
-      "post_url": "https://www.linkedin.com/posts/amrit-sharma-371843107_k-12-b2b-sales-timeline-heat-chart-activity-7496909221683171328-UBuX",
-      "author_name": "k-12 b2b sales timeline \"heat chart\" | Amrit Sharma",
-      "published_date": "2026-08-22",
-      "snippet": "After an insightful meeting with a few education leaders at a conference recently and based on my previous experiences on ground, I put together a simple K-12 B2B Heat Chart .",
-      "source_mode": "live_api"
-    },
-    {
-      "post_id": "7511399812513148928",
-      "post_url": "https://www.linkedin.com/posts/k-12-co-op-vendor_k12vendors-k12sales-educationvendors-activity-7511399812513148928-eern",
-      "author_name": "K-12 CO-OP",
-      "published_date": "2026-10-01",
-      "snippet": "K-12 buyers need to quickly understand the problem you solve, the value you bring, and why your solution fits their needs. The stronger. B2B Solutions Sales",
-      "source_mode": "live_api"
-    },
-    {
-      "post_id": "7511044245424689152",
-      "post_url": "https://www.linkedin.com/posts/amandalanicek_one-thing-vendors-need-to-understand-before-activity-7511044245424689152-HL_B",
-      "author_name": "Amandalanicek",
-      "published_date": "2026-09-30",
-      "snippet": "As K12 procurement shifts from seasonal bursts to an ongoing search for value, edtech and B2B vendors must adapt their go-to-market strategies.",
-      "source_mode": "live_api"
-    },
-    {
-      "post_id": "7488671654764507139",
-      "post_url": "https://www.linkedin.com/posts/amandalanicek_i-spent-the-18-years-in-education-with-the-activity-7488671654764507139-j2v6",
-      "author_name": "Amanda Lanicek",
-      "published_date": "2026-07-30",
-      "snippet": "It's because the B2B sales world is so much more transactional in comparison. In K12, you need to accept that your reputation defines your long-term success,",
-      "source_mode": "live_api"
-    },
-    {
-      "post_id": "7488052663511810050",
-      "post_url": "https://www.linkedin.com/posts/amandalanicek_k12-sales-folks-this-activity-7488052663511810050-5K_v",
-      "author_name": "Amanda Lanicek",
-      "published_date": "2026-07-29",
-      "snippet": "K12 sales folks, this! | 16 comments on LinkedIn. ... Mike Iwinski. AE & Sales Leader in K12 EdTech & B2B | Full-Cycle ...",
-      "source_mode": "live_api"
+      "post_id": "7505508295126990848",
+      "post_url": "https://www.linkedin.com/posts/k12-edtech-education-share-7505508295126990848-a87b",
+      "author_name": "Supplied Post Author",
+      "published_date": "2026-09-15",
+      "snippet": "User-supplied LinkedIn post for phrase: 'K12 B2B Sales'",
+      "source_mode": "supplied_urls"
     }
   ],
   "ranked_influencers": [
     {
       "rank": 1,
-      "name": "Chang Su",
-      "profile_url": "https://www.linkedin.com/in/changsu-maplespark",
-      "current_role": "Not publicly listed",
+      "name": "Achal Saxena",
+      "profile_url": "https://www.linkedin.com/in/achal-saxena-asitis",
+      "current_role": "I Build Retail & Institutional Markets | 30+ Yrs Apparel | Driving CSR & EdTech Solutions for Boarding Schools Across India",
       "organization": "Not publicly listed",
       "location": "Not publicly listed",
       "school_ecosystem_indicators": [
-        "School Owner/Trustee",
-        "Edu-Entrepreneur"
+        "Decision-Maker Connector"
       ],
-      "embedding_similarity": 75.98,
-      "llm_fit_score": 80.0,
+      "embedding_similarity": 73.53,
+      "llm_fit_score": 60.0,
       "engagement_bonus": 0.0,
-      "final_relevance_score": 78.59,
-      "match_explanation": "Helps private high schools prove graduate outcomes.",
+      "final_relevance_score": 64.74,
+      "match_explanation": "Mentions EdTech solutions for boarding schools, indicating K12 ecosystem connector.",
       "commented_post_count": 1,
       "commented_posts": [
         {
-          "post_url": "https://www.linkedin.com/posts/amandalanicek_one-thing-vendors-need-to-understand-before-activity-7511044245424689152-HL_B",
-          "post_author": "Amandalanicek",
-          "comment_snippet": "A school choosing a product is also choosing what it has less money for. Vendors should be able to explain the value with that tradeoff in mind."
+          "post_url": "https://www.linkedin.com/posts/k12-edtech-education-share-7505508295126990848-a87b",
+          "post_author": "Supplied Post Author",
+          "comment_snippet": "EDXSO PARTNER"
         }
       ]
     },
     {
       "rank": 2,
-      "name": "Maria H. Andersen",
-      "profile_url": "https://www.linkedin.com/in/mariahandersen",
-      "current_role": "Founder and CEO",
-      "organization": "Socrait",
-      "location": "Not publicly listed",
-      "school_ecosystem_indicators": [
-        "School Owner/Trustee"
-      ],
-      "embedding_similarity": 75.62,
-      "llm_fit_score": 78.0,
-      "engagement_bonus": 0.0,
-      "final_relevance_score": 77.17,
-      "match_explanation": "Founder/CEO and K‑12 teacher, direct school ecosystem involvement.",
-      "commented_post_count": 1,
-      "commented_posts": [
-        {
-          "post_url": "https://www.linkedin.com/posts/amandalanicek_k12-sales-folks-this-activity-7488052663511810050-5K_v",
-          "post_author": "Amanda Lanicek",
-          "comment_snippet": ""
-        }
-      ]
-    },
-    {
-      "rank": 3,
-      "name": "Rebecca Lareau",
-      "profile_url": "https://www.linkedin.com/in/rebecca-lareau",
-      "current_role": "Manager, K-12 Educational Services-Ed Tech-Global Literacy",
-      "organization": "Not publicly listed",
-      "location": "Not publicly listed",
-      "school_ecosystem_indicators": [
-        "Decision-Maker Connector",
-        "Edu-Entrepreneur"
-      ],
-      "embedding_similarity": 71.07,
-      "llm_fit_score": 80.0,
-      "engagement_bonus": 0.0,
-      "final_relevance_score": 76.87,
-      "match_explanation": "Manager of K‑12 Educational Services, EdTech focus.",
-      "commented_post_count": 1,
-      "commented_posts": [
-        {
-          "post_url": "https://www.linkedin.com/posts/amandalanicek_one-thing-vendors-need-to-understand-before-activity-7511044245424689152-HL_B",
-          "post_author": "Amandalanicek",
-          "comment_snippet": "Viewing this through a lens of being in a school building and now outside of one, I suppose the first question is how much money does the district actually have, and where are they required to spend it? Not every dollar is going to produce "
-        }
-      ]
-    },
-    {
-      "rank": 4,
-      "name": "Chris Rauscher",
-      "profile_url": "https://www.linkedin.com/in/chris-rauscher-6a518aa1",
-      "current_role": "Director Of Information Technology",
-      "organization": "Manchester Township School",
-      "location": "Not publicly listed",
-      "school_ecosystem_indicators": [
-        "Multi-School Network Professional"
-      ],
-      "embedding_similarity": 57.27,
-      "llm_fit_score": 85.0,
-      "engagement_bonus": 0.0,
-      "final_relevance_score": 75.29,
-      "match_explanation": "Director of IT at a K‑12 school and board president.",
-      "commented_post_count": 1,
-      "commented_posts": [
-        {
-          "post_url": "https://www.linkedin.com/posts/amandalanicek_one-thing-vendors-need-to-understand-before-activity-7511044245424689152-HL_B",
-          "post_author": "Amandalanicek",
-          "comment_snippet": "Yes and don’t send over a renewal in May with a substantial increase."
-        }
-      ]
-    },
-    {
-      "rank": 5,
-      "name": "Andee Szwabowski",
-      "profile_url": "https://www.linkedin.com/in/andee-szwabowski-192268139",
-      "current_role": "Educational K12 Sales",
-      "organization": "Not publicly listed",
-      "location": "Not publicly listed",
-      "school_ecosystem_indicators": [
-        "Decision-Maker Connector"
-      ],
-      "embedding_similarity": 66.32,
-      "llm_fit_score": 78.0,
-      "engagement_bonus": 0.0,
-      "final_relevance_score": 73.91,
-      "match_explanation": "Explicit K12 sales and education roles.",
-      "commented_post_count": 1,
-      "commented_posts": [
-        {
-          "post_url": "https://www.linkedin.com/posts/amandalanicek_one-thing-vendors-need-to-understand-before-activity-7511044245424689152-HL_B",
-          "post_author": "Amandalanicek",
-          "comment_snippet": "I appreciate this post! Very well said."
-        }
-      ]
-    },
-    {
-      "rank": 6,
-      "name": "Joel Smith",
-      "profile_url": "https://www.linkedin.com/in/joel-smith-87a179356",
-      "current_role": "Founder & CEO",
-      "organization": "TeachCraft",
-      "location": "Not publicly listed",
-      "school_ecosystem_indicators": [
-        "Edu-Entrepreneur"
-      ],
-      "embedding_similarity": 68.89,
-      "llm_fit_score": 75.0,
-      "engagement_bonus": 0.0,
-      "final_relevance_score": 72.86,
-      "match_explanation": "Founder & CEO of TeachCraft, education‑focused startup.",
-      "commented_post_count": 1,
-      "commented_posts": [
-        {
-          "post_url": "https://www.linkedin.com/posts/amandalanicek_one-thing-vendors-need-to-understand-before-activity-7511044245424689152-HL_B",
-          "post_author": "Amandalanicek",
-          "comment_snippet": "This is a really important message. Value extraction has a direct impact on real people. \"If your product deserves public dollars, you should be able to explain the value clearly, price it responsibly, and respect the limits districts are w"
-        }
-      ]
-    },
-    {
-      "rank": 7,
-      "name": "Robert W.",
-      "profile_url": "https://www.linkedin.com/in/robert-westhoefer",
-      "current_role": "Sales Leader in EdTech",
-      "organization": "Not publicly listed",
-      "location": "Not publicly listed",
-      "school_ecosystem_indicators": [
-        "Decision-Maker Connector"
-      ],
-      "embedding_similarity": 73.36,
-      "llm_fit_score": 70.0,
-      "engagement_bonus": 0.0,
-      "final_relevance_score": 71.18,
-      "match_explanation": "Explicit K‑12 growth strategist, EdTech sales focus.",
-      "commented_post_count": 1,
-      "commented_posts": [
-        {
-          "post_url": "https://www.linkedin.com/posts/amandalanicek_one-thing-vendors-need-to-understand-before-activity-7511044245424689152-HL_B",
-          "post_author": "Amandalanicek",
-          "comment_snippet": "One more wrinkle in K-12: the same $50K can be easy or nearly impossible to spend depending on which funding source it has to come from. It’s not just “is there budget?” It’s “is this an allowable use, is the funding recurring, and what hap"
-        }
-      ]
-    },
-    {
-      "rank": 8,
-      "name": "Corey Ryan, MBA, CPC",
-      "profile_url": "https://www.linkedin.com/in/coreymryan",
-      "current_role": "Field Account Executive",
-      "organization": "Not publicly listed",
-      "location": "Not publicly listed",
-      "school_ecosystem_indicators": [
-        "Decision-Maker Connector"
-      ],
-      "embedding_similarity": 62.37,
-      "llm_fit_score": 68.0,
-      "engagement_bonus": 5.0,
-      "final_relevance_score": 71.03,
-      "match_explanation": "Headline cites K‑12 communications & safety, sales role across schools.",
-      "commented_post_count": 2,
-      "commented_posts": [
-        {
-          "post_url": "https://www.linkedin.com/posts/amandalanicek_one-thing-vendors-need-to-understand-before-activity-7511044245424689152-HL_B",
-          "post_author": "Amandalanicek",
-          "comment_snippet": "You’re absolutely right that value is measured against all the competing priorities for not only money but also time (ex time to set up, train, integrate, etc.). While I do think corporations don’t think of the products in that way, I also "
-        },
-        {
-          "post_url": "https://www.linkedin.com/posts/amandalanicek_i-spent-the-18-years-in-education-with-the-activity-7488671654764507139-j2v6",
-          "post_author": "Amanda Lanicek",
-          "comment_snippet": "But the business thinks that good sales person is expendable. So they’ll lay them off or overextend them and think your business can be retained with an overseas customer success manager or can be won with a BDR earning $50k a year to cold "
-        }
-      ]
-    },
-    {
-      "rank": 9,
-      "name": "Mike Iwinski",
-      "profile_url": "https://www.linkedin.com/in/mikeiwinski",
-      "current_role": "AE & Sales Leader in K12 EdTech",
-      "organization": "Not publicly listed",
-      "location": "Not publicly listed",
-      "school_ecosystem_indicators": [
-        "Decision-Maker Connector"
-      ],
-      "embedding_similarity": 76.41,
-      "llm_fit_score": 68.0,
-      "engagement_bonus": 0.0,
-      "final_relevance_score": 70.94,
-      "match_explanation": "Explicit K12 EdTech sales focus; district impact.",
-      "commented_post_count": 1,
-      "commented_posts": [
-        {
-          "post_url": "https://www.linkedin.com/posts/amandalanicek_k12-sales-folks-this-activity-7488052663511810050-5K_v",
-          "post_author": "Amanda Lanicek",
-          "comment_snippet": "While I completely understand this, many us of sales folks are still required to meet KPIs for prospecting activity, even during the summer. So it's a difficult balance for sure."
-        }
-      ]
-    },
-    {
-      "rank": 10,
-      "name": "Stuart S.",
-      "profile_url": "https://www.linkedin.com/in/stuartstogdill",
-      "current_role": "Strategic Sales Executive",
-      "organization": "Not publicly listed",
-      "location": "Not publicly listed",
-      "school_ecosystem_indicators": [
-        "Decision-Maker Connector"
-      ],
-      "embedding_similarity": 68.72,
-      "llm_fit_score": 62.0,
-      "engagement_bonus": 5.0,
-      "final_relevance_score": 69.35,
-      "match_explanation": "Mentions EdTech and SLED (state/local education) sales.",
-      "commented_post_count": 2,
-      "commented_posts": [
-        {
-          "post_url": "https://www.linkedin.com/posts/amandalanicek_one-thing-vendors-need-to-understand-before-activity-7511044245424689152-HL_B",
-          "post_author": "Amandalanicek",
-          "comment_snippet": "This is a bizarre way to frame public-sector purchasing. Every organization has finite resources and competing priorities. \n\nDistricts aren’t unique because spending $1 somewhere means it can’t be spent somewhere else. And cybersecurity, IT"
-        },
-        {
-          "post_url": "https://www.linkedin.com/posts/amandalanicek_k12-sales-folks-this-activity-7488052663511810050-5K_v",
-          "post_author": "Amanda Lanicek",
-          "comment_snippet": "You can reach out all year round... it's truly that simple."
-        }
-      ]
-    },
-    {
-      "rank": 11,
-      "name": "Ryan Erskine",
-      "profile_url": "https://www.linkedin.com/in/ryan-erskine-edmentum",
-      "current_role": "Partnership Manager",
-      "organization": "Edmentum",
-      "location": "Not publicly listed",
-      "school_ecosystem_indicators": [
-        "Decision-Maker Connector"
-      ],
-      "embedding_similarity": 45.25,
-      "llm_fit_score": 82.0,
-      "engagement_bonus": 0.0,
-      "final_relevance_score": 69.14,
-      "match_explanation": "Partnership Manager at Edmentum, K12 edtech partner.",
-      "commented_post_count": 1,
-      "commented_posts": [
-        {
-          "post_url": "https://www.linkedin.com/posts/amandalanicek_one-thing-vendors-need-to-understand-before-activity-7511044245424689152-HL_B",
-          "post_author": "Amandalanicek",
-          "comment_snippet": "This is so true. Love this post"
-        }
-      ]
-    },
-    {
-      "rank": 12,
-      "name": "Woody Rust",
-      "profile_url": "https://www.linkedin.com/in/woody-rust-37117a12",
-      "current_role": "Sr. Educational Account Manager",
-      "organization": "Howard Technology Solutions",
-      "location": "Not publicly listed",
-      "school_ecosystem_indicators": [
-        "Decision-Maker Connector"
-      ],
-      "embedding_similarity": 62.89,
-      "llm_fit_score": 72.0,
-      "engagement_bonus": 0.0,
-      "final_relevance_score": 68.81,
-      "match_explanation": "Educational account manager serving K12 districts.",
-      "commented_post_count": 1,
-      "commented_posts": [
-        {
-          "post_url": "https://www.linkedin.com/posts/amandalanicek_one-thing-vendors-need-to-understand-before-activity-7511044245424689152-HL_B",
-          "post_author": "Amandalanicek",
-          "comment_snippet": "A GOOD Vendor/Partner is a steward of tax payer money. Realizes it is a trust, and not a commission check. I pay taxes. I do not want them wasted."
-        }
-      ]
-    },
-    {
-      "rank": 13,
-      "name": "Becky Thal",
-      "profile_url": "https://www.linkedin.com/in/rthal0704",
-      "current_role": "Senior Manager of Partner Development",
-      "organization": "Conscious Discipline",
-      "location": "Not publicly listed",
-      "school_ecosystem_indicators": [
-        "Decision-Maker Connector"
-      ],
-      "embedding_similarity": 74.74,
-      "llm_fit_score": 65.0,
-      "engagement_bonus": 0.0,
-      "final_relevance_score": 68.41,
-      "match_explanation": "Partner development in education; former teacher background.",
-      "commented_post_count": 1,
-      "commented_posts": [
-        {
-          "post_url": "https://www.linkedin.com/posts/amandalanicek_i-spent-the-18-years-in-education-with-the-activity-7488671654764507139-j2v6",
-          "post_author": "Amanda Lanicek",
-          "comment_snippet": "It is a huge benefit that I worked as a teacher for many years before moving into edtech. I am always trying to be realistic about timelines. It always bothers me when vendors think NOW is a good time to be reaching out. If you were that co"
-        }
-      ]
-    },
-    {
-      "rank": 14,
-      "name": "Danielle Alcaraz, MBA",
-      "profile_url": "https://www.linkedin.com/in/daniellealcaraz",
-      "current_role": "Not publicly listed",
-      "organization": "Not publicly listed",
-      "location": "Not publicly listed",
-      "school_ecosystem_indicators": [
-        "Decision-Maker Connector"
-      ],
-      "embedding_similarity": 72.09,
-      "llm_fit_score": 65.0,
-      "engagement_bonus": 0.0,
-      "final_relevance_score": 67.48,
-      "match_explanation": "20+ years selling into K‑12, tutoring focus indicates school network ties.",
-      "commented_post_count": 1,
-      "commented_posts": [
-        {
-          "post_url": "https://www.linkedin.com/posts/amandalanicek_k12-sales-folks-this-activity-7488052663511810050-5K_v",
-          "post_author": "Amanda Lanicek",
-          "comment_snippet": "😂 After 20+ years selling into K–12, I've concluded there's only one official sales season: \"Talk to us later.\" The real job is building relationships so when the need does arise, you're the first call."
-        }
-      ]
-    },
-    {
-      "rank": 15,
-      "name": "Kip Robins",
-      "profile_url": "https://www.linkedin.com/in/kip-robins-3656a927",
-      "current_role": "Chief Technology Officer",
-      "organization": "Not publicly listed",
-      "location": "Not publicly listed",
-      "school_ecosystem_indicators": [
-        "Decision-Maker Connector"
-      ],
-      "embedding_similarity": 57.17,
-      "llm_fit_score": 70.0,
-      "engagement_bonus": 0.0,
-      "final_relevance_score": 65.51,
-      "match_explanation": "CTO at a school district (CCISD) – direct K12 decision maker.",
-      "commented_post_count": 1,
-      "commented_posts": [
-        {
-          "post_url": "https://www.linkedin.com/posts/amandalanicek_i-spent-the-18-years-in-education-with-the-activity-7488671654764507139-j2v6",
-          "post_author": "Amanda Lanicek",
-          "comment_snippet": "Wow, I just posted the same thing about a different vendor.   You are absolutely right we are numbers in a system of people that don’t care about what we do.   It’s not about people like me and you it’s about kids."
-        }
-      ]
-    },
-    {
-      "rank": 16,
-      "name": "Jason Robinette",
-      "profile_url": "https://www.linkedin.com/in/jasonarobinette",
-      "current_role": "Educational Technology Leader",
-      "organization": "Not publicly listed",
-      "location": "Not publicly listed",
-      "school_ecosystem_indicators": [
-        "Decision-Maker Connector"
-      ],
-      "embedding_similarity": 59.09,
-      "llm_fit_score": 66.0,
-      "engagement_bonus": 0.0,
-      "final_relevance_score": 63.58,
-      "match_explanation": "Leadership title in educational technology; K12 focus implied.",
-      "commented_post_count": 1,
-      "commented_posts": [
-        {
-          "post_url": "https://www.linkedin.com/posts/amandalanicek_i-spent-the-18-years-in-education-with-the-activity-7488671654764507139-j2v6",
-          "post_author": "Amanda Lanicek",
-          "comment_snippet": "My inbox is lit right now!"
-        }
-      ]
-    },
-    {
-      "rank": 17,
-      "name": "Steve Lawhorn",
-      "profile_url": "https://www.linkedin.com/in/steve-lawhorn-7b0b571",
-      "current_role": "Director of AI Innovation",
-      "organization": "Not publicly listed",
-      "location": "Not publicly listed",
-      "school_ecosystem_indicators": [
-        "Decision-Maker Connector"
-      ],
-      "embedding_similarity": 68.75,
-      "llm_fit_score": 60.0,
-      "engagement_bonus": 0.0,
-      "final_relevance_score": 63.06,
-      "match_explanation": "Sells IT services to schools, moderate connector.",
-      "commented_post_count": 1,
-      "commented_posts": [
-        {
-          "post_url": "https://www.linkedin.com/posts/amandalanicek_one-thing-vendors-need-to-understand-before-activity-7511044245424689152-HL_B",
-          "post_author": "Amandalanicek",
-          "comment_snippet": "Having sold IT services to schools for years, I continuously looked for bargains, charged fair prices and when services took a bit more time and materials, just absorbed it...the big thing is I setup schools for success, designed how to spe"
-        }
-      ]
-    },
-    {
-      "rank": 18,
-      "name": "Joe Ayala",
-      "profile_url": "https://www.linkedin.com/in/joeayala",
-      "current_role": "Director of Technology",
-      "organization": "Not publicly listed",
-      "location": "Not publicly listed",
-      "school_ecosystem_indicators": [
-        "Decision-Maker Connector"
-      ],
-      "embedding_similarity": 63.95,
-      "llm_fit_score": 62.0,
-      "engagement_bonus": 0.0,
-      "final_relevance_score": 62.68,
-      "match_explanation": "EdTech leader for 14,000 students; tech decision role in schools.",
-      "commented_post_count": 1,
-      "commented_posts": [
-        {
-          "post_url": "https://www.linkedin.com/posts/amandalanicek_k12-sales-folks-this-activity-7488052663511810050-5K_v",
-          "post_author": "Amanda Lanicek",
-          "comment_snippet": "But do you have 15 minutes for a quick chat?"
-        }
-      ]
-    },
-    {
-      "rank": 19,
-      "name": "John-Paul Ramin",
-      "profile_url": "https://www.linkedin.com/in/john-paul-ramin",
-      "current_role": "Regional Sales Director",
-      "organization": "Not publicly listed",
-      "location": "Not publicly listed",
-      "school_ecosystem_indicators": [
-        "Decision-Maker Connector"
-      ],
-      "embedding_similarity": 69.68,
-      "llm_fit_score": 58.0,
-      "engagement_bonus": 0.0,
-      "final_relevance_score": 62.09,
-      "match_explanation": "Sales director role likely engaging multiple K12 districts.",
-      "commented_post_count": 1,
-      "commented_posts": [
-        {
-          "post_url": "https://www.linkedin.com/posts/amandalanicek_i-spent-the-18-years-in-education-with-the-activity-7488671654764507139-j2v6",
-          "post_author": "Amanda Lanicek",
-          "comment_snippet": "This is 100% what every well meaning salesperson from outside of industry doesn’t get (at least initially) when they come to K12. It’s because the B2B sales world is so much more transactional in comparison. \n\nYou can (and perhaps even shou"
-        }
-      ]
-    },
-    {
-      "rank": 20,
-      "name": "John Faig",
-      "profile_url": "https://www.linkedin.com/in/johnfaig",
-      "current_role": "GTM consultant",
-      "organization": "Not publicly listed",
-      "location": "Not publicly listed",
-      "school_ecosystem_indicators": [
-        "Decision-Maker Connector"
-      ],
-      "embedding_similarity": 68.22,
-      "llm_fit_score": 58.0,
-      "engagement_bonus": 0.0,
-      "final_relevance_score": 61.58,
-      "match_explanation": "EdTech truth teller and GTM consultant, interacts with school budgets.",
-      "commented_post_count": 1,
-      "commented_posts": [
-        {
-          "post_url": "https://www.linkedin.com/posts/amandalanicek_one-thing-vendors-need-to-understand-before-activity-7511044245424689152-HL_B",
-          "post_author": "Amandalanicek",
-          "comment_snippet": "With budgets being tight, you are likely displacing an existing #EdTech tool (even if in another market segment).  If you are replacing a competitor, the value prop (ROI) must be high to justify the migration and retraining costs.  In this "
-        }
-      ]
-    },
-    {
-      "rank": 21,
-      "name": "Mel Bayless",
-      "profile_url": "https://www.linkedin.com/in/mbayless",
-      "current_role": "Strategic Execution & Operational Alignment",
-      "organization": "Not publicly listed",
-      "location": "Not publicly listed",
-      "school_ecosystem_indicators": [
-        "Decision-Maker Connector"
-      ],
-      "embedding_similarity": 67.48,
-      "llm_fit_score": 57.0,
-      "engagement_bonus": 0.0,
-      "final_relevance_score": 60.67,
-      "match_explanation": "Vendor side discussing outreach to schools; operational role linked to K12.",
-      "commented_post_count": 1,
-      "commented_posts": [
-        {
-          "post_url": "https://www.linkedin.com/posts/amandalanicek_i-spent-the-18-years-in-education-with-the-activity-7488671654764507139-j2v6",
-          "post_author": "Amanda Lanicek",
-          "comment_snippet": "I'm on that vendor side and literally we were just talking about this today!   We had a team thinking of reaching out to our K-12 customers now about something and a few of us responded with absolutely not the wrong time to talk about that."
-        }
-      ]
-    },
-    {
-      "rank": 22,
-      "name": "Aubrey Washington",
-      "profile_url": "https://www.linkedin.com/in/aubrey-washington",
-      "current_role": "Fractional BDR",
-      "organization": "Not publicly listed",
-      "location": "Not publicly listed",
-      "school_ecosystem_indicators": [
-        "Decision-Maker Connector"
-      ],
-      "embedding_similarity": 70.41,
-      "llm_fit_score": 55.0,
-      "engagement_bonus": 0.0,
-      "final_relevance_score": 60.39,
-      "match_explanation": "Mentions managing territory of ~2000 schools; sales outreach to K12.",
-      "commented_post_count": 1,
-      "commented_posts": [
-        {
-          "post_url": "https://www.linkedin.com/posts/amandalanicek_k12-sales-folks-this-activity-7488052663511810050-5K_v",
-          "post_author": "Amanda Lanicek",
-          "comment_snippet": "Back in the day I had around 2000 schools in my territory. Tiered out A++ through to D. Different region and schools started in September but the top tier schools would evaluate October through December. Come January the deals were done.\n\nM"
-        }
-      ]
-    },
-    {
-      "rank": 23,
-      "name": "Anthony T.",
-      "profile_url": "https://www.linkedin.com/in/anthonytagler",
-      "current_role": "Not publicly listed",
-      "organization": "Not publicly listed",
-      "location": "Not publicly listed",
-      "school_ecosystem_indicators": [
-        "Decision-Maker Connector"
-      ],
-      "embedding_similarity": 58.4,
-      "llm_fit_score": 50.0,
-      "engagement_bonus": 5.0,
-      "final_relevance_score": 57.94,
-      "match_explanation": "Talks about vendor proposals in K12 context.",
-      "commented_post_count": 2,
-      "commented_posts": [
-        {
-          "post_url": "https://www.linkedin.com/posts/amandalanicek_one-thing-vendors-need-to-understand-before-activity-7511044245424689152-HL_B",
-          "post_author": "Amandalanicek",
-          "comment_snippet": "It’s posts like this that are maddening. More times than not a vendors proposal is being weighed against OTHER PROPOSALS. \n\nAnd there are ways to create revenue within school districts.\n\nOne of those ways is through value recovery on your a"
-        },
-        {
-          "post_url": "https://www.linkedin.com/posts/amandalanicek_k12-sales-folks-this-activity-7488052663511810050-5K_v",
-          "post_author": "Amanda Lanicek",
-          "comment_snippet": "Why do people in these roles always end their post with little quips? It’s like they’re afraid of being looked at as abrasive or assholes so they make little jokes to soften the tone of the post. \n\nSmall piece of advice for school districts"
-        }
-      ]
-    },
-    {
-      "rank": 24,
-      "name": "Lillian Smith",
-      "profile_url": "https://www.linkedin.com/in/lillian-smith-027abb256",
-      "current_role": "Customer Success Manager",
-      "organization": "Not publicly listed",
-      "location": "Not publicly listed",
-      "school_ecosystem_indicators": [
-        "Decision-Maker Connector"
-      ],
-      "embedding_similarity": 48.3,
-      "llm_fit_score": 60.0,
-      "engagement_bonus": 0.0,
-      "final_relevance_score": 55.91,
-      "match_explanation": "Customer success in K‑12 ed‑tech; works with school users.",
-      "commented_post_count": 1,
-      "commented_posts": [
-        {
-          "post_url": "https://www.linkedin.com/posts/amandalanicek_i-spent-the-18-years-in-education-with-the-activity-7488671654764507139-j2v6",
-          "post_author": "Amanda Lanicek",
-          "comment_snippet": "This! Say it louder for the people in the back. 👏 I remember going to a doctor’s appointment with a doctor I had only seen once, over a year prior, and she asked me about my horse and my husband as if we had just talked yesterday. I was so "
-        }
-      ]
-    },
-    {
-      "rank": 25,
-      "name": "Michael Harris",
-      "profile_url": "https://www.linkedin.com/in/mpoweredtechsales",
-      "current_role": "Not publicly listed",
-      "organization": "Not publicly listed",
-      "location": "Not publicly listed",
-      "school_ecosystem_indicators": [
-        "Decision-Maker Connector"
-      ],
-      "embedding_similarity": 54.41,
-      "llm_fit_score": 55.0,
-      "engagement_bonus": 0.0,
-      "final_relevance_score": 54.79,
-      "match_explanation": "Comment mentions K12 sales experience, indicating connector to schools.",
-      "commented_post_count": 1,
-      "commented_posts": [
-        {
-          "post_url": "https://www.linkedin.com/posts/amandalanicek_one-thing-vendors-need-to-understand-before-activity-7511044245424689152-HL_B",
-          "post_author": "Amandalanicek",
-          "comment_snippet": "Having served in K12 sales for nearly a decade, I can tell you with very high level of confidence that sales professionals aren't pricing with their commission check in mind.  There's not the type of markup that you would see in something l"
-        }
-      ]
-    },
-    {
-      "rank": 26,
-      "name": "Greg Lemen",
-      "profile_url": "https://www.linkedin.com/in/greg-lemen-bb9835188",
-      "current_role": "Sales Account Executive",
-      "organization": "Apple, Inc.",
-      "location": "Not publicly listed",
-      "school_ecosystem_indicators": [
-        "Decision-Maker Connector"
-      ],
-      "embedding_similarity": 55.58,
-      "llm_fit_score": 52.0,
-      "engagement_bonus": 0.0,
-      "final_relevance_score": 53.25,
-      "match_explanation": "Apple education sales; interacts with K12 customers.",
-      "commented_post_count": 1,
-      "commented_posts": [
-        {
-          "post_url": "https://www.linkedin.com/posts/amandalanicek_i-spent-the-18-years-in-education-with-the-activity-7488671654764507139-j2v6",
-          "post_author": "Amanda Lanicek",
-          "comment_snippet": "Yep. Sales 101: Treat customers as you would like to be treated as a customer."
-        }
-      ]
-    },
-    {
-      "rank": 27,
-      "name": "Ed Czajkowski",
-      "profile_url": "https://www.linkedin.com/in/ed-czajkowski2023",
-      "current_role": "Not publicly listed",
-      "organization": "Not publicly listed",
-      "location": "Not publicly listed",
-      "school_ecosystem_indicators": [
-        "Decision-Maker Connector"
-      ],
-      "embedding_similarity": 51.19,
-      "llm_fit_score": 48.0,
-      "engagement_bonus": 0.0,
-      "final_relevance_score": 49.12,
-      "match_explanation": "Sales‑oriented headline emphasizing solutions for schools.",
-      "commented_post_count": 1,
-      "commented_posts": [
-        {
-          "post_url": "https://www.linkedin.com/posts/amandalanicek_i-spent-the-18-years-in-education-with-the-activity-7488671654764507139-j2v6",
-          "post_author": "Amanda Lanicek",
-          "comment_snippet": "Some are good...some are ___.  The question is do the vendors know if they are good or ____.  I am still trying to figure myself out... :-)"
-        }
-      ]
-    },
-    {
-      "rank": 28,
-      "name": "Greg Simmons",
-      "profile_url": "https://www.linkedin.com/in/sledtechgreg",
-      "current_role": "Named Account Manager",
+      "name": "Leslie R. Jacob",
+      "profile_url": "https://www.linkedin.com/in/lesliejacob",
+      "current_role": "HR I Learning & Development Specialist I Career Coach I Social Educator I Musician",
       "organization": "Not publicly listed",
       "location": "Not publicly listed",
       "school_ecosystem_indicators": [
         "General / Non-K12 Specific"
       ],
-      "embedding_similarity": 56.42,
-      "llm_fit_score": 30.0,
-      "engagement_bonus": 0.0,
-      "final_relevance_score": 39.25,
-      "match_explanation": "Channel sales manager, no direct K12 decision‑maker link.",
-      "commented_post_count": 1,
-      "commented_posts": [
-        {
-          "post_url": "https://www.linkedin.com/posts/amandalanicek_one-thing-vendors-need-to-understand-before-activity-7511044245424689152-HL_B",
-          "post_author": "Amandalanicek",
-          "comment_snippet": "I was given 2 pieces of advice growing up I believe prepped me for this exact thing:\n\n1) Right out of college, I sold cars. I had a customer tell me pretty directly, “I understand you have to make a living. You don’t have to make the entire"
-        }
-      ]
-    },
-    {
-      "rank": 29,
-      "name": "Shane Johnson",
-      "profile_url": "https://www.linkedin.com/in/shane-johnson-5331b33a",
-      "current_role": "CEO",
-      "organization": "ChromebookParts.com",
-      "location": "Not publicly listed",
-      "school_ecosystem_indicators": [
-        "General / Non-K12 Specific"
-      ],
-      "embedding_similarity": 50.44,
-      "llm_fit_score": 30.0,
-      "engagement_bonus": 0.0,
-      "final_relevance_score": 37.15,
-      "match_explanation": "CEO of hardware retailer, no clear K12 link.",
-      "commented_post_count": 1,
-      "commented_posts": [
-        {
-          "post_url": "https://www.linkedin.com/posts/amandalanicek_one-thing-vendors-need-to-understand-before-activity-7511044245424689152-HL_B",
-          "post_author": "Amandalanicek",
-          "comment_snippet": "“They cannot create new revenue like a private company can” is the biggest issue for me. To me, that is the core issue for budgets and government in general. What if we could make them capable of doing that? Just like in the business realm,"
-        }
-      ]
-    },
-    {
-      "rank": 30,
-      "name": "Collin Osburn, MBA",
-      "profile_url": "https://www.linkedin.com/in/collin-osburn-mba-b892b5a",
-      "current_role": "Chief Executive Officer",
-      "organization": "ESI",
-      "location": "Not publicly listed",
-      "school_ecosystem_indicators": [
-        "General / Non-K12 Specific"
-      ],
-      "embedding_similarity": 54.09,
-      "llm_fit_score": 25.0,
-      "engagement_bonus": 0.0,
-      "final_relevance_score": 35.18,
-      "match_explanation": "CEO role without K12 indication.",
-      "commented_post_count": 1,
-      "commented_posts": [
-        {
-          "post_url": "https://www.linkedin.com/posts/amandalanicek_k12-sales-folks-this-activity-7488052663511810050-5K_v",
-          "post_author": "Amanda Lanicek",
-          "comment_snippet": "Ugghh... I'm going to be vulnerable here... I've followed you for a while and some of your feedback truly is funny. Some is very spot on! I'm not saying this post isn't.. but I'm convinced that some companies do have solutions that could di"
-        }
-      ]
-    },
-    {
-      "rank": 31,
-      "name": "Chris Mills",
-      "profile_url": "https://www.linkedin.com/in/chrannah",
-      "current_role": "Public Sector & Finance Technology",
-      "organization": "Not publicly listed",
-      "location": "Not publicly listed",
-      "school_ecosystem_indicators": [
-        "General / Non-K12 Specific"
-      ],
-      "embedding_similarity": 54.11,
+      "embedding_similarity": 44.72,
       "llm_fit_score": 20.0,
       "engagement_bonus": 0.0,
-      "final_relevance_score": 31.94,
-      "match_explanation": "Public sector finance tech, no K12 link.",
+      "final_relevance_score": 28.65,
+      "match_explanation": "Headline focuses on HR and coaching, no K12 school connection.",
       "commented_post_count": 1,
       "commented_posts": [
         {
-          "post_url": "https://www.linkedin.com/posts/amandalanicek_one-thing-vendors-need-to-understand-before-activity-7511044245424689152-HL_B",
-          "post_author": "Amandalanicek",
-          "comment_snippet": "True, and this is exactly why multi-year Capital Improvement Planning (CIP) matters. Projects, costs, funding and priorities are constantly changing, and keeping that picture current across multiple years isn’t easy. That’s exactly what we "
-        }
-      ]
-    },
-    {
-      "rank": 32,
-      "name": "John Elmore",
-      "profile_url": "https://www.linkedin.com/in/john-elmore-a9472312",
-      "current_role": "Strategic Sourcing",
-      "organization": "Not publicly listed",
-      "location": "Not publicly listed",
-      "school_ecosystem_indicators": [
-        "General / Non-K12 Specific"
-      ],
-      "embedding_similarity": 62.97,
-      "llm_fit_score": 15.0,
-      "engagement_bonus": 0.0,
-      "final_relevance_score": 31.79,
-      "match_explanation": "Supply‑chain focus, no school connection.",
-      "commented_post_count": 1,
-      "commented_posts": [
-        {
-          "post_url": "https://www.linkedin.com/posts/amandalanicek_one-thing-vendors-need-to-understand-before-activity-7511044245424689152-HL_B",
-          "post_author": "Amandalanicek",
-          "comment_snippet": "Well said."
-        }
-      ]
-    },
-    {
-      "rank": 33,
-      "name": "Shreyas K.",
-      "profile_url": "https://www.linkedin.com/in/shreyas-koushik",
-      "current_role": "ICF Certified Executive-Life Coach",
-      "organization": "Not publicly listed",
-      "location": "Not publicly listed",
-      "school_ecosystem_indicators": [
-        "General / Non-K12 Specific"
-      ],
-      "embedding_similarity": 63.19,
-      "llm_fit_score": 10.0,
-      "engagement_bonus": 0.0,
-      "final_relevance_score": 28.62,
-      "match_explanation": "Executive coach, unrelated to K12 schools.",
-      "commented_post_count": 1,
-      "commented_posts": [
-        {
-          "post_url": "https://www.linkedin.com/posts/amandalanicek_one-thing-vendors-need-to-understand-before-activity-7511044245424689152-HL_B",
-          "post_author": "Amandalanicek",
-          "comment_snippet": "The issue isn’t that AEs earn commissions, it’s whether the incentive structure rewards closing a deal more than creating measurable value for students and schools. \n\nIn K12, responsible selling means understanding the opportunity cost of e"
-        }
-      ]
-    },
-    {
-      "rank": 34,
-      "name": "Raghuveer Bhatt",
-      "profile_url": "https://www.linkedin.com/in/raghuveer-bhatt-602b49176",
-      "current_role": "System Administrator",
-      "organization": "Not publicly listed",
-      "location": "Not publicly listed",
-      "school_ecosystem_indicators": [
-        "General / Non-K12 Specific"
-      ],
-      "embedding_similarity": 43.76,
-      "llm_fit_score": 20.0,
-      "engagement_bonus": 0.0,
-      "final_relevance_score": 28.32,
-      "match_explanation": "System Administrator title, no K12 decision‑maker evidence.",
-      "commented_post_count": 1,
-      "commented_posts": [
-        {
-          "post_url": "https://www.linkedin.com/posts/amrit-sharma-371843107_k-12-b2b-sales-timeline-heat-chart-activity-7496909221683171328-UBuX",
-          "post_author": "k-12 b2b sales timeline \"heat chart\" | Amrit Sharma",
-          "comment_snippet": "Amrit Sharma  Sir aaap bhi na, Kya baat Kya baat, Aap mumbai aaskte he💐💐"
-        }
-      ]
-    },
-    {
-      "rank": 35,
-      "name": "Marc C. Socolov",
-      "profile_url": "https://www.linkedin.com/in/marc-c-socolov-2354155",
-      "current_role": "Not publicly listed",
-      "organization": "Not publicly listed",
-      "location": "Not publicly listed",
-      "school_ecosystem_indicators": [
-        "General / Non-K12 Specific"
-      ],
-      "embedding_similarity": 33.46,
-      "llm_fit_score": 20.0,
-      "engagement_bonus": 0.0,
-      "final_relevance_score": 24.71,
-      "match_explanation": "Print & sarcasm focus, no K12 relevance.",
-      "commented_post_count": 1,
-      "commented_posts": [
-        {
-          "post_url": "https://www.linkedin.com/posts/amandalanicek_k12-sales-folks-this-activity-7488052663511810050-5K_v",
-          "post_author": "Amanda Lanicek",
-          "comment_snippet": "So....You're saying you don't need a printer too?!?  😆"
+          "post_url": "https://www.linkedin.com/posts/k12-edtech-education-share-7505508295126990848-a87b",
+          "post_author": "Supplied Post Author",
+          "comment_snippet": "EDXSO PARTNER"
         }
       ]
     }
   ],
+  "similar_profiles": [
+    {
+      "rank": 1,
+      "name": "Achal Saxena",
+      "profile_url": "https://in.linkedin.com/in/achal-saxena-asitis",
+      "headline": "I Build Retail & Institutional Markets | 30+ Yrs Apparel",
+      "current_role": "I Build Retail & Institutional Markets",
+      "organization": "Not publicly listed",
+      "location": "Not publicly listed",
+      "snippet": "I Build Retail & Institutional Markets | 30+ Yrs Apparel | Driving CSR & EdTech Solutions ... Sales, I have led expansion, built distribution ecosystems ...",
+      "matched_seed_name": "Achal Saxena",
+      "matched_seed_url": "https://www.linkedin.com/in/achal-saxena-asitis",
+      "matched_seed_role": "I Build Retail & Institutional Markets | 30+ Yrs Apparel | Driving CSR & EdTech Solutions for Boarding Schools Across India",
+      "similarity_score": 72.11,
+      "seed_similarity": 91.93,
+      "persona_similarity": 35.31,
+      "match_reason": "Semantic role & K12 alignment with Achal Saxena (I Build Retail & Institutional Markets | 30+ Yrs Apparel | Driving CSR & EdTech Solutions for Boarding Schools Across India) — 92% seed / 35% persona match."
+    },
+    {
+      "rank": 2,
+      "name": "Devendra Jaiswal",
+      "profile_url": "https://in.linkedin.com/in/devendra-jaiswal-a4565017",
+      "headline": "K–12 EdTech Sales & Operations Leader",
+      "current_role": "K–12 EdTech Sales & Operations Leader",
+      "organization": "Not publicly listed",
+      "location": "Not publicly listed",
+      "snippet": "Devendra Jaiswal. K–12 EdTech Sales & Operations Leader | B2B School Partnerships | Books & Curriculum Sales | Channel & Business Development | Strategic ...",
+      "matched_seed_name": "Achal Saxena",
+      "matched_seed_url": "https://www.linkedin.com/in/achal-saxena-asitis",
+      "matched_seed_role": "I Build Retail & Institutional Markets | 30+ Yrs Apparel | Driving CSR & EdTech Solutions for Boarding Schools Across India",
+      "similarity_score": 62.72,
+      "seed_similarity": 64.12,
+      "persona_similarity": 60.11,
+      "match_reason": "Semantic role & K12 alignment with Achal Saxena (I Build Retail & Institutional Markets | 30+ Yrs Apparel | Driving CSR & EdTech Solutions for Boarding Schools Across India) — 64% seed / 60% persona match."
+    },
+    {
+      "rank": 3,
+      "name": "Esraa Allam‏",
+      "profile_url": "https://sa.linkedin.com/in/esraa-allam2",
+      "headline": "‏EdTech Sales Executive | B2B Business Development",
+      "current_role": "‏EdTech Sales Executive",
+      "organization": "Not publicly listed",
+      "location": "Not publicly listed",
+      "snippet": "EdTech Sales Executive | B2B Business Development | School Partnerships | Lead Generation Expert | K-12 • AI • LMS • B2B Sales‏ · ‏Strategic EdTech Sales ...",
+      "matched_seed_name": "Achal Saxena",
+      "matched_seed_url": "https://www.linkedin.com/in/achal-saxena-asitis",
+      "matched_seed_role": "I Build Retail & Institutional Markets | 30+ Yrs Apparel | Driving CSR & EdTech Solutions for Boarding Schools Across India",
+      "similarity_score": 60.68,
+      "seed_similarity": 61.02,
+      "persona_similarity": 60.06,
+      "match_reason": "Semantic role & K12 alignment with Achal Saxena (I Build Retail & Institutional Markets | 30+ Yrs Apparel | Driving CSR & EdTech Solutions for Boarding Schools Across India) — 61% seed / 60% persona match."
+    },
+    {
+      "rank": 4,
+      "name": "Marney Whitney",
+      "profile_url": "https://www.linkedin.com/in/marneywhitney",
+      "headline": "EdTech Sales and Success | K12 & Higher Ed",
+      "current_role": "EdTech Sales and Success",
+      "organization": "Not publicly listed",
+      "location": "Not publicly listed",
+      "snippet": "Driven EdTech sales professional with 15+ years of success in technology solution sales, specializing in the education sector (K–12 and higher ed).",
+      "matched_seed_name": "Achal Saxena",
+      "matched_seed_url": "https://www.linkedin.com/in/achal-saxena-asitis",
+      "matched_seed_role": "I Build Retail & Institutional Markets | 30+ Yrs Apparel | Driving CSR & EdTech Solutions for Boarding Schools Across India",
+      "similarity_score": 59.42,
+      "seed_similarity": 63.08,
+      "persona_similarity": 52.63,
+      "match_reason": "Semantic role & K12 alignment with Achal Saxena (I Build Retail & Institutional Markets | 30+ Yrs Apparel | Driving CSR & EdTech Solutions for Boarding Schools Across India) — 63% seed / 53% persona match."
+    },
+    {
+      "rank": 5,
+      "name": "Allie Vincent",
+      "profile_url": "https://www.linkedin.com/in/allie-vincent-0aa5b213b",
+      "headline": "Director, School Partnerships",
+      "current_role": "Director, School Partnerships",
+      "organization": "Not publicly listed",
+      "location": "Not publicly listed",
+      "snippet": "Director, School Partnerships · Senior education leader with 10+ years of experience across K–12, EdTech, and education services — specializing in district ...",
+      "matched_seed_name": "Achal Saxena",
+      "matched_seed_url": "https://www.linkedin.com/in/achal-saxena-asitis",
+      "matched_seed_role": "I Build Retail & Institutional Markets | 30+ Yrs Apparel | Driving CSR & EdTech Solutions for Boarding Schools Across India",
+      "similarity_score": 53.15,
+      "seed_similarity": 52.6,
+      "persona_similarity": 54.17,
+      "match_reason": "Semantic role & K12 alignment with Achal Saxena (I Build Retail & Institutional Markets | 30+ Yrs Apparel | Driving CSR & EdTech Solutions for Boarding Schools Across India) — 53% seed / 54% persona match."
+    },
+    {
+      "rank": 6,
+      "name": "Gurleen Kaur Bhamra",
+      "profile_url": "https://in.linkedin.com/in/gurleen-kaur-bhamra-7bb51a361",
+      "headline": "EdTech Sales Leader, Driving Growth for K-12 & HEI's",
+      "current_role": "EdTech Sales Leader, Driving Growth for K-12 & HEI's",
+      "organization": "Not publicly listed",
+      "location": "Not publicly listed",
+      "snippet": "EdTech Sales Leader, Driving Growth for K-12 & HEI's · Experience: LearnQoch · Location: Mumbai · 5 connections on LinkedIn. View Gurleen Kaur Bhamra's ...",
+      "matched_seed_name": "Achal Saxena",
+      "matched_seed_url": "https://www.linkedin.com/in/achal-saxena-asitis",
+      "matched_seed_role": "I Build Retail & Institutional Markets | 30+ Yrs Apparel | Driving CSR & EdTech Solutions for Boarding Schools Across India",
+      "similarity_score": 50.11,
+      "seed_similarity": 54.1,
+      "persona_similarity": 42.69,
+      "match_reason": "Semantic role & K12 alignment with Achal Saxena (I Build Retail & Institutional Markets | 30+ Yrs Apparel | Driving CSR & EdTech Solutions for Boarding Schools Across India) — 54% seed / 43% persona match."
+    },
+    {
+      "rank": 7,
+      "name": "Melissa Floyd",
+      "profile_url": "https://www.linkedin.com/in/melissamfloyd",
+      "headline": "Education & EdTech Sales Leader | Strategic Partnerships",
+      "current_role": "Education & EdTech Sales Leader",
+      "organization": "Not publicly listed",
+      "location": "Not publicly listed",
+      "snippet": "Education & EdTech Sales Leader | Strategic Partnerships | Enterprise Accounts | K–12 ... Frisco ISD is a Pre-K-12 school district in North Texas. • Built ...",
+      "matched_seed_name": "Achal Saxena",
+      "matched_seed_url": "https://www.linkedin.com/in/achal-saxena-asitis",
+      "matched_seed_role": "I Build Retail & Institutional Markets | 30+ Yrs Apparel | Driving CSR & EdTech Solutions for Boarding Schools Across India",
+      "similarity_score": 48.77,
+      "seed_similarity": 49.38,
+      "persona_similarity": 47.63,
+      "match_reason": "Semantic role & K12 alignment with Achal Saxena (I Build Retail & Institutional Markets | 30+ Yrs Apparel | Driving CSR & EdTech Solutions for Boarding Schools Across India) — 49% seed / 48% persona match."
+    },
+    {
+      "rank": 8,
+      "name": "Laura W.",
+      "profile_url": "https://www.linkedin.com/in/laura-w-a152b285",
+      "headline": "Territory Manager | EdTech Sales | K–12 & Higher Ed Partnerships",
+      "current_role": "Territory Manager",
+      "organization": "Not publicly listed",
+      "location": "Not publicly listed",
+      "snippet": "Territory Manager | EdTech Sales | K–12 & Higher Ed Partnerships | ClassVR ... I specialize in district-wide edtech adoption, strategic sales planning, and ...",
+      "matched_seed_name": "Achal Saxena",
+      "matched_seed_url": "https://www.linkedin.com/in/achal-saxena-asitis",
+      "matched_seed_role": "I Build Retail & Institutional Markets | 30+ Yrs Apparel | Driving CSR & EdTech Solutions for Boarding Schools Across India",
+      "similarity_score": 45.57,
+      "seed_similarity": 47.32,
+      "persona_similarity": 42.33,
+      "match_reason": "Semantic role & K12 alignment with Achal Saxena (I Build Retail & Institutional Markets | 30+ Yrs Apparel | Driving CSR & EdTech Solutions for Boarding Schools Across India) — 47% seed / 42% persona match."
+    },
+    {
+      "rank": 9,
+      "name": "Mo S.",
+      "profile_url": "https://www.linkedin.com/in/mo-s-0b7496199",
+      "headline": "EdTech Sales Manager at PowerSchool",
+      "current_role": "EdTech Sales Manager",
+      "organization": "PowerSchool",
+      "location": "Not publicly listed",
+      "snippet": "EdTech Sales Manager at PowerSchool · Results-driven sales ... K-12 education technology sales cycles are among the longest and most complex in B2B SaaS.",
+      "matched_seed_name": "Achal Saxena",
+      "matched_seed_url": "https://www.linkedin.com/in/achal-saxena-asitis",
+      "matched_seed_role": "I Build Retail & Institutional Markets | 30+ Yrs Apparel | Driving CSR & EdTech Solutions for Boarding Schools Across India",
+      "similarity_score": 42.4,
+      "seed_similarity": 44.19,
+      "persona_similarity": 39.07,
+      "match_reason": "Semantic role & K12 alignment with Achal Saxena (I Build Retail & Institutional Markets | 30+ Yrs Apparel | Driving CSR & EdTech Solutions for Boarding Schools Across India) — 44% seed / 39% persona match."
+    },
+    {
+      "rank": 10,
+      "name": "Claudia T.",
+      "profile_url": "https://www.linkedin.com/in/claudiatreacy",
+      "headline": "EdTech Sales| Account Manager | Partnership Developer",
+      "current_role": "EdTech Sales",
+      "organization": "Not publicly listed",
+      "location": "Not publicly listed",
+      "snippet": "EdTech Sales| Account Manager | Partnership Developer | SaaS | K-12. LEGO ... Educational Sales Consultant. LEGO Education. Feb 2016 - Present 10 years 9 ...",
+      "matched_seed_name": "Achal Saxena",
+      "matched_seed_url": "https://www.linkedin.com/in/achal-saxena-asitis",
+      "matched_seed_role": "I Build Retail & Institutional Markets | 30+ Yrs Apparel | Driving CSR & EdTech Solutions for Boarding Schools Across India",
+      "similarity_score": 41.5,
+      "seed_similarity": 41.65,
+      "persona_similarity": 41.22,
+      "match_reason": "Semantic role & K12 alignment with Achal Saxena (I Build Retail & Institutional Markets | 30+ Yrs Apparel | Driving CSR & EdTech Solutions for Boarding Schools Across India) — 42% seed / 41% persona match."
+    },
+    {
+      "rank": 11,
+      "name": "Dennis Orton",
+      "profile_url": "https://www.linkedin.com/in/dkyle-orton",
+      "headline": "Inside Sales Manager | SaaS & EdTech Sales",
+      "current_role": "Inside Sales Manager",
+      "organization": "Not publicly listed",
+      "location": "Not publicly listed",
+      "snippet": "Inside Sales Manager | SaaS & EdTech Sales | Driving Growth in Federal ... 2 years 9 months. Provo, Utah, United States. Helping K-12 Districts, Schools ...",
+      "matched_seed_name": "Achal Saxena",
+      "matched_seed_url": "https://www.linkedin.com/in/achal-saxena-asitis",
+      "matched_seed_role": "I Build Retail & Institutional Markets | 30+ Yrs Apparel | Driving CSR & EdTech Solutions for Boarding Schools Across India",
+      "similarity_score": 36.09,
+      "seed_similarity": 36.43,
+      "persona_similarity": 35.46,
+      "match_reason": "Semantic role & K12 alignment with Achal Saxena (I Build Retail & Institutional Markets | 30+ Yrs Apparel | Driving CSR & EdTech Solutions for Boarding Schools Across India) — 36% seed / 35% persona match."
+    }
+  ],
   "related_companies": [
     {
-      "name": "Sales Impact Academy",
-      "company_url": "https://www.linkedin.com/company/sales-impact-academy",
+      "name": "K-12 CO-OP Vendors",
+      "company_url": "https://www.linkedin.com/company/k-12-co-op-vendor",
       "category": "School Network / Provider",
-      "description": "Impact Academy is the world's leading go-to-market learning platform providing a continuous live learning solution for high-growth technology companies.",
+      "description": "This dedicated vendor portal is designed to streamline your sales process to educational institutions. Gain access to a vast network of K-12 member districts ...",
       "related_contacts": [],
       "source": "LinkedIn Company Index"
     },
     {
-      "name": "Best Buy Business",
-      "company_url": "https://www.linkedin.com/company/best-buy-for-business",
+      "name": "K12 Techno Services Pvt. Ltd.",
+      "company_url": "https://in.linkedin.com/company/k12-techno-services-pvt.-ltd.",
       "category": "School Network / Provider",
-      "description": "Corporate & Education (K-12 & University) Solution Sales, Computing, TVs, Appliances, Mobile, Account Management, In-Store Pick Up, Geek Squad. B2B Healthcare ...",
+      "description": "K12 Techno Services Pvt. Ltd. is a leading education services provider in India, offering comprehensive support to K–12 schools",
       "related_contacts": [],
       "source": "LinkedIn Company Index"
     },
     {
-      "name": "Unlock Edtech",
-      "company_url": "https://www.linkedin.com/company/unlock-edtech",
+      "name": "EDU Sales Consults",
+      "company_url": "https://www.linkedin.com/company/edu-sales-consults",
       "category": "Sales & Education Advisory",
-      "description": "Helping companies enter and rapidly scale into the US K-12 market. Edtech provides focused strategy development and go-to-market sales expertise. B2B District ...",
+      "description": "A full-service K-12 and higher education sales consulting group. Fractional sales leadership, coaching, and strategy.",
       "related_contacts": [],
       "source": "LinkedIn Company Index"
     },
@@ -945,15 +293,15 @@
       "name": "Teaching Channel",
       "company_url": "https://pe.linkedin.com/company/teachingchannel",
       "category": "School Network / Provider",
-      "description": "We just posted a new Education Partnership Specialist (Inside Sales B2B) opportunity at K12 Coalition! K-12 education space and loves sales.",
+      "description": "We just posted a new Education Partnership Specialist (Inside Sales B2B) opportunity at K12 Coalition! the K-12 education space and loves sales.",
       "related_contacts": [],
       "source": "LinkedIn Company Index"
     },
     {
-      "name": "SaaSsy",
-      "company_url": "https://www.linkedin.com/company/saassy-b2b",
+      "name": "Sales Impact Academy",
+      "company_url": "https://www.linkedin.com/company/sales-impact-academy",
       "category": "School Network / Provider",
-      "description": "Scale your Enterprise B2B Lead Pipeline with unshakable Brand Trust … 53% of B2B buying cycles. #K12 #HigherEducation. B2B sales cycle increased by 3 weeks,",
+      "description": "Impact Academy is the world's leading go-to-market learning platform providing a continuous live learning solution for high-growth technology companies.",
       "related_contacts": [],
       "source": "LinkedIn Company Index"
     }

@@ -1,158 +1,267 @@
 {
   "search_phrase": "EDXSO",
-  "generated_at_utc": "2026-11-25T14:20:27.719799+00:00",
-  "source_mode": "live_api",
-  "discovery_provider": "Serper.dev",
+  "generated_at_utc": "2026-11-26T04:15:41.060764+00:00",
+  "source_mode": "supplied_urls",
+  "discovery_provider": "Supplied URLs",
   "llm_model_used": "openai/gpt-oss-120b",
-  "total_duration_secs": 24.96,
+  "total_duration_secs": 21.59,
   "stage_timings_secs": {
     "stage1_input": 0.0,
-    "stage2_discovery": 3.52,
-    "stage3_extraction": 18.4,
-    "stage4_ai_analysis": 1.83,
-    "stage5_ranking": 1.21,
-    "stage6_assembly": 0.0
+    "stage2_discovery": 1.33,
+    "stage3_extraction": 6.26,
+    "stage4_ai_analysis": 1.38,
+    "stage5_ranking": 2.61,
+    "stage6_assembly": 10.01
   },
-  "total_posts": 5,
-  "total_unique_commenters": 4,
+  "total_posts": 1,
+  "total_unique_commenters": 2,
   "posts": [
     {
-      "post_id": "7528352695292710913",
-      "post_url": "https://www.linkedin.com/posts/worldedx_worldedx-diwalicelebration-teamculture-activity-7528352695292710913-hGGa",
-      "author_name": "Worldedx",
-      "published_date": "2026-11-17",
-      "snippet": "#EDXSO #FutureOfEducation #Adaptability #EducationalTrends · Like Comment ... #EDXSO #EducationGrowth #SchoolImprovement #EnrollmentStrategies · Like ...",
-      "source_mode": "live_api"
-    },
-    {
-      "post_id": "7524820136193896448",
-      "post_url": "https://www.linkedin.com/posts/atulnischal_every-child-is-a-lamp-with-the-potential-activity-7524820136193896448-azlR",
-      "author_name": "Dr. Atul Nischal, PhD",
-      "published_date": "2026-11-07",
-      "snippet": "#F5RefreshEducation #EDXSO To register for F5 click: https://lnkd.in/dZTFhVmp. No alternative text description for this image. View C2PA information. 25 2 ...",
-      "source_mode": "live_api"
-    },
-    {
-      "post_id": "7513894950086930432",
-      "post_url": "https://www.linkedin.com/posts/teacher360_wemeet-teacher360-safetyinschools-activity-7513894950086930432-PCwk",
-      "author_name": "Teacher360",
-      "published_date": "2026-10-08",
-      "snippet": "... EDXSO, Delhi, bringing diverse perspectives from school leadership, infrastructure and safeguarding. Key insights from the ...",
-      "source_mode": "live_api"
-    },
-    {
-      "post_id": "7513612393772494849",
-      "post_url": "https://www.linkedin.com/posts/edex-life-school_want-to-see-the-edex-transformation-activity-7513612393772494849-LSSq",
-      "author_name": "EDEX Life School",
-      "published_date": "2026-10-07",
-      "snippet": "EDXSO. 1,268 followers. 4mo. Report this post; Close menu. Want to boost teacher effectiveness? Focus on consistent training and regular feedback. Here's a tip ...",
-      "source_mode": "live_api"
-    },
-    {
-      "post_id": "7509840006610333696",
-      "post_url": "https://www.linkedin.com/posts/arijit79india_dialogue-pisa-reading-activity-7509840006610333696-MaTO",
-      "author_name": "Arijit Ghosh",
-      "published_date": "2026-09-27",
-      "snippet": "... EDXSO and Prometric, one thought stayed with me: assessment is a message. It tells #children what matters, #teachers what to prioritise, and #schools what ...",
-      "source_mode": "live_api"
+      "post_id": "7505508295126990848",
+      "post_url": "https://www.linkedin.com/posts/k12-edtech-education-share-7505508295126990848-a87b",
+      "author_name": "Supplied Post Author",
+      "published_date": "2026-09-15",
+      "snippet": "User-supplied LinkedIn post for phrase: 'EDXSO'",
+      "source_mode": "supplied_urls"
     }
   ],
   "ranked_influencers": [
     {
       "rank": 1,
-      "name": "Monika Chopra",
-      "profile_url": "https://www.linkedin.com/in/monika-chopra-3846591b",
-      "current_role": "School Transformation Consultant",
+      "name": "Achal Saxena",
+      "profile_url": "https://www.linkedin.com/in/achal-saxena-asitis",
+      "current_role": "I Build Retail & Institutional Markets",
       "organization": "Not publicly listed",
       "location": "Not publicly listed",
       "school_ecosystem_indicators": [
-        "School/Education Consultant"
+        "Decision-Maker Connector"
       ],
-      "embedding_similarity": 82.62,
-      "llm_fit_score": 81.0,
+      "embedding_similarity": 75.65,
+      "llm_fit_score": 60.0,
       "engagement_bonus": 0.0,
-      "final_relevance_score": 81.57,
-      "match_explanation": "Consultant helping schools build academic systems; NEP 2020 focus.",
+      "final_relevance_score": 65.48,
+      "match_explanation": "Mentions CSR & EdTech solutions for boarding schools, linking to K12.",
       "commented_post_count": 1,
       "commented_posts": [
         {
-          "post_url": "https://www.linkedin.com/posts/teacher360_wemeet-teacher360-safetyinschools-activity-7513894950086930432-PCwk",
-          "post_author": "Teacher360",
-          "comment_snippet": "Thank you Teacher360 for this platform"
+          "post_url": "https://www.linkedin.com/posts/k12-edtech-education-share-7505508295126990848-a87b",
+          "post_author": "Supplied Post Author",
+          "comment_snippet": "EDXSO PARTNER"
         }
       ]
     },
     {
       "rank": 2,
-      "name": "Sapna Sukul",
-      "profile_url": "https://www.linkedin.com/in/sapna-sukul-561b2b81",
-      "current_role": "Founder",
-      "organization": "Edustart Solutions",
-      "location": "Not publicly listed",
-      "school_ecosystem_indicators": [
-        "Edu-Entrepreneur"
-      ],
-      "embedding_similarity": 66.66,
-      "llm_fit_score": 86.0,
-      "engagement_bonus": 0.0,
-      "final_relevance_score": 79.23,
-      "match_explanation": "Founder of Edustart, CBSE ToT trainer and British Council ambassador—direct K12 focus.",
-      "commented_post_count": 1,
-      "commented_posts": [
-        {
-          "post_url": "https://www.linkedin.com/posts/arijit79india_dialogue-pisa-reading-activity-7509840006610333696-MaTO",
-          "post_author": "Arijit Ghosh",
-          "comment_snippet": "Arijit very well summarised it"
-        }
-      ]
-    },
-    {
-      "rank": 3,
-      "name": "Kavleen Kaur",
-      "profile_url": "https://www.linkedin.com/in/kavleen-kaur-bhatia",
-      "current_role": "AI Capability Trainer / Founder",
-      "organization": "Credo Learnings",
-      "location": "Not publicly listed",
-      "school_ecosystem_indicators": [
-        "School/Education Consultant"
-      ],
-      "embedding_similarity": 60.01,
-      "llm_fit_score": 82.0,
-      "engagement_bonus": 0.0,
-      "final_relevance_score": 74.3,
-      "match_explanation": "Headline focuses on AI coaching for classrooms and school transformation.",
-      "commented_post_count": 1,
-      "commented_posts": [
-        {
-          "post_url": "https://www.linkedin.com/posts/arijit79india_dialogue-pisa-reading-activity-7509840006610333696-MaTO",
-          "post_author": "Arijit Ghosh",
-          "comment_snippet": "Pertinent analysis, Arijit Sir\n\nAnd banning AI won't protect the struggle; designing for it will.\n\nOne approach: students attempt the problem on their own first, then compare their reasoning with the AI's. The comparison becomes the assessm"
-        }
-      ]
-    },
-    {
-      "rank": 4,
-      "name": "Pete Hall Jones",
-      "profile_url": "https://www.linkedin.com/in/peterhj",
-      "current_role": "Safeguarding Trainer",
+      "name": "Leslie R. Jacob",
+      "profile_url": "https://www.linkedin.com/in/lesliejacob",
+      "current_role": "HR I Learning & Development Specialist I Career Coach I Social Educator I Musician",
       "organization": "Not publicly listed",
       "location": "Not publicly listed",
       "school_ecosystem_indicators": [
         "General / Non-K12 Specific"
       ],
-      "embedding_similarity": 62.91,
-      "llm_fit_score": 28.0,
+      "embedding_similarity": 44.72,
+      "llm_fit_score": 20.0,
       "engagement_bonus": 0.0,
-      "final_relevance_score": 40.22,
-      "match_explanation": "Safeguarding work spans all sectors, no clear K12 school link.",
+      "final_relevance_score": 28.65,
+      "match_explanation": "HR/L&D focus, no school‑decision‑maker evidence.",
       "commented_post_count": 1,
       "commented_posts": [
         {
-          "post_url": "https://www.linkedin.com/posts/arijit79india_dialogue-pisa-reading-activity-7509840006610333696-MaTO",
-          "post_author": "Arijit Ghosh",
-          "comment_snippet": "Check out the PISA Human Flourishing - Post Ai curriculum and pedagogy stuff!"
+          "post_url": "https://www.linkedin.com/posts/k12-edtech-education-share-7505508295126990848-a87b",
+          "post_author": "Supplied Post Author",
+          "comment_snippet": "EDXSO PARTNER"
         }
       ]
+    }
+  ],
+  "similar_profiles": [
+    {
+      "rank": 1,
+      "name": "Marney Whitney",
+      "profile_url": "https://www.linkedin.com/in/marneywhitney",
+      "headline": "EdTech Sales and Success | K12 & Higher Ed",
+      "current_role": "EdTech Sales and Success",
+      "organization": "Not publicly listed",
+      "location": "Not publicly listed",
+      "snippet": "Driven EdTech sales professional with 15+ years of success in technology solution sales, specializing in the education sector (K–12 and higher ed).",
+      "matched_seed_name": "Achal Saxena",
+      "matched_seed_url": "https://www.linkedin.com/in/achal-saxena-asitis",
+      "matched_seed_role": "I Build Retail & Institutional Markets",
+      "similarity_score": 58.95,
+      "seed_similarity": 62.36,
+      "persona_similarity": 52.63,
+      "match_reason": "Semantic role & K12 alignment with Achal Saxena (I Build Retail & Institutional Markets) — 62% seed / 53% persona match."
+    },
+    {
+      "rank": 2,
+      "name": "Kelly Pope",
+      "profile_url": "https://www.linkedin.com/in/kelly-pope-53404a70",
+      "headline": "K12 Sales | Relationship Builder | Customer Focused",
+      "current_role": "K12 Sales",
+      "organization": "Not publicly listed",
+      "location": "Not publicly listed",
+      "snippet": "K12 Sales | Relationship Builder | Customer Focused | Goal Driven | Motivated · Fifteen years of experience in leadership, education and outreach.",
+      "matched_seed_name": "Achal Saxena",
+      "matched_seed_url": "https://www.linkedin.com/in/achal-saxena-asitis",
+      "matched_seed_role": "I Build Retail & Institutional Markets",
+      "similarity_score": 56.15,
+      "seed_similarity": 61.28,
+      "persona_similarity": 46.62,
+      "match_reason": "Semantic role & K12 alignment with Achal Saxena (I Build Retail & Institutional Markets) — 61% seed / 47% persona match."
+    },
+    {
+      "rank": 3,
+      "name": "Achal Saxena",
+      "profile_url": "https://in.linkedin.com/in/achal-saxena-asitis",
+      "headline": "I Build Retail & Institutional Markets | 30+ Yrs Apparel",
+      "current_role": "I Build Retail & Institutional Markets",
+      "organization": "Not publicly listed",
+      "location": "Not publicly listed",
+      "snippet": "... school ecosystems, enabling structured communication systems across ... Education. Chhatrapati Shahu Ji Maharaj University. B A English Language, Anct ...",
+      "matched_seed_name": "Achal Saxena",
+      "matched_seed_url": "https://www.linkedin.com/in/achal-saxena-asitis",
+      "matched_seed_role": "I Build Retail & Institutional Markets",
+      "similarity_score": 56.01,
+      "seed_similarity": 66.11,
+      "persona_similarity": 37.24,
+      "match_reason": "Semantic role & K12 alignment with Achal Saxena (I Build Retail & Institutional Markets) — 66% seed / 37% persona match."
+    },
+    {
+      "rank": 4,
+      "name": "Laura W.",
+      "profile_url": "https://www.linkedin.com/in/laura-w-a152b285",
+      "headline": "Territory Manager | EdTech Sales | K–12 & Higher Ed Partnerships",
+      "current_role": "Territory Manager",
+      "organization": "Not publicly listed",
+      "location": "Not publicly listed",
+      "snippet": "Territory Manager | EdTech Sales | K–12 & Higher Ed Partnerships | ClassVR ... K–12 schools, higher education institutions, and training organizations.",
+      "matched_seed_name": "Achal Saxena",
+      "matched_seed_url": "https://www.linkedin.com/in/achal-saxena-asitis",
+      "matched_seed_role": "I Build Retail & Institutional Markets",
+      "similarity_score": 54.36,
+      "seed_similarity": 58.01,
+      "persona_similarity": 47.58,
+      "match_reason": "Semantic role & K12 alignment with Achal Saxena (I Build Retail & Institutional Markets) — 58% seed / 48% persona match."
+    },
+    {
+      "rank": 5,
+      "name": "Allie Vincent",
+      "profile_url": "https://www.linkedin.com/in/allie-vincent-0aa5b213b",
+      "headline": "Director, School Partnerships",
+      "current_role": "Director, School Partnerships",
+      "organization": "Not publicly listed",
+      "location": "Not publicly listed",
+      "snippet": "Director, School Partnerships · Senior education leader with 10+ years of experience across K–12, EdTech, and education services — specializing in district ...",
+      "matched_seed_name": "Achal Saxena",
+      "matched_seed_url": "https://www.linkedin.com/in/achal-saxena-asitis",
+      "matched_seed_role": "I Build Retail & Institutional Markets",
+      "similarity_score": 53.35,
+      "seed_similarity": 52.91,
+      "persona_similarity": 54.17,
+      "match_reason": "Semantic role & K12 alignment with Achal Saxena (I Build Retail & Institutional Markets) — 53% seed / 54% persona match."
+    },
+    {
+      "rank": 6,
+      "name": "Gurleen Kaur Bhamra",
+      "profile_url": "https://in.linkedin.com/in/gurleen-kaur-bhamra-7bb51a361",
+      "headline": "EdTech Sales Leader, Driving Growth for K-12 & HEI's",
+      "current_role": "EdTech Sales Leader, Driving Growth for K-12 & HEI's",
+      "organization": "Not publicly listed",
+      "location": "Not publicly listed",
+      "snippet": "EdTech Sales Leader, Driving Growth for K-12 & HEI's · Experience: LearnQoch · Location: Mumbai · 5 connections on LinkedIn. View Gurleen Kaur Bhamra's ...",
+      "matched_seed_name": "Achal Saxena",
+      "matched_seed_url": "https://www.linkedin.com/in/achal-saxena-asitis",
+      "matched_seed_role": "I Build Retail & Institutional Markets",
+      "similarity_score": 51.41,
+      "seed_similarity": 56.11,
+      "persona_similarity": 42.69,
+      "match_reason": "Semantic role & K12 alignment with Achal Saxena (I Build Retail & Institutional Markets) — 56% seed / 43% persona match."
+    },
+    {
+      "rank": 7,
+      "name": "Melissa Floyd",
+      "profile_url": "https://www.linkedin.com/in/melissamfloyd",
+      "headline": "Education & EdTech Sales Leader | Strategic Partnerships",
+      "current_role": "Education & EdTech Sales Leader",
+      "organization": "Not publicly listed",
+      "location": "Not publicly listed",
+      "snippet": "Education & EdTech Sales Leader | Strategic Partnerships | Enterprise Accounts | K–12 ... Frisco ISD is a Pre-K-12 school district in North Texas. • Built ...",
+      "matched_seed_name": "Achal Saxena",
+      "matched_seed_url": "https://www.linkedin.com/in/achal-saxena-asitis",
+      "matched_seed_role": "I Build Retail & Institutional Markets",
+      "similarity_score": 51.29,
+      "seed_similarity": 53.26,
+      "persona_similarity": 47.63,
+      "match_reason": "Semantic role & K12 alignment with Achal Saxena (I Build Retail & Institutional Markets) — 53% seed / 48% persona match."
+    },
+    {
+      "rank": 8,
+      "name": "Taylor Doe",
+      "profile_url": "https://www.linkedin.com/in/taylordoe",
+      "headline": "K12 Sales Leader",
+      "current_role": "K12 Sales Leader",
+      "organization": "Not publicly listed",
+      "location": "Not publicly listed",
+      "snippet": "K12 Sales Leader · Experience: Branching Minds · Education: Elon ... Director, School Sales. Cartwheel. Aug 2023 - Mar 2024 8 months. Panorama Education.",
+      "matched_seed_name": "Achal Saxena",
+      "matched_seed_url": "https://www.linkedin.com/in/achal-saxena-asitis",
+      "matched_seed_role": "I Build Retail & Institutional Markets",
+      "similarity_score": 45.86,
+      "seed_similarity": 48.51,
+      "persona_similarity": 40.95,
+      "match_reason": "Semantic role & K12 alignment with Achal Saxena (I Build Retail & Institutional Markets) — 49% seed / 41% persona match."
+    },
+    {
+      "rank": 9,
+      "name": "Claudia T.",
+      "profile_url": "https://www.linkedin.com/in/claudiatreacy",
+      "headline": "EdTech Sales| Account Manager | Partnership Developer",
+      "current_role": "EdTech Sales",
+      "organization": "Not publicly listed",
+      "location": "Not publicly listed",
+      "snippet": "EdTech Sales| Account Manager | Partnership Developer | SaaS | K-12 · Experience: LEGO Education · Location: Boston · 500+ connections on LinkedIn.",
+      "matched_seed_name": "Achal Saxena",
+      "matched_seed_url": "https://www.linkedin.com/in/achal-saxena-asitis",
+      "matched_seed_role": "I Build Retail & Institutional Markets",
+      "similarity_score": 45.75,
+      "seed_similarity": 48.06,
+      "persona_similarity": 41.46,
+      "match_reason": "Semantic role & K12 alignment with Achal Saxena (I Build Retail & Institutional Markets) — 48% seed / 41% persona match."
+    },
+    {
+      "rank": 10,
+      "name": "Mo S.",
+      "profile_url": "https://www.linkedin.com/in/mo-s-0b7496199",
+      "headline": "EdTech Sales Manager at PowerSchool",
+      "current_role": "EdTech Sales Manager",
+      "organization": "PowerSchool",
+      "location": "Not publicly listed",
+      "snippet": "K-12 education technology sales cycles are among the longest and most ... High School Diploma EDUCATION. 2006 - 2010. Activities and Societies: Student ...",
+      "matched_seed_name": "Achal Saxena",
+      "matched_seed_url": "https://www.linkedin.com/in/achal-saxena-asitis",
+      "matched_seed_role": "I Build Retail & Institutional Markets",
+      "similarity_score": 43.54,
+      "seed_similarity": 46.63,
+      "persona_similarity": 37.8,
+      "match_reason": "Semantic role & K12 alignment with Achal Saxena (I Build Retail & Institutional Markets) — 47% seed / 38% persona match."
+    },
+    {
+      "rank": 11,
+      "name": "Marcus Cross",
+      "profile_url": "https://www.linkedin.com/in/marcus-cross-7aa40195",
+      "headline": "Educator | EdTech Sales | LEGO Education",
+      "current_role": "Educator",
+      "organization": "Not publicly listed",
+      "location": "Not publicly listed",
+      "snippet": "Educator | EdTech Sales | LEGO Education · Experience: LEGO Education ... school teams in the Albemarle/Charlottesville counties o Former co-anchor on the ...",
+      "matched_seed_name": "Achal Saxena",
+      "matched_seed_url": "https://www.linkedin.com/in/achal-saxena-asitis",
+      "matched_seed_role": "I Build Retail & Institutional Markets",
+      "similarity_score": 32.29,
+      "seed_similarity": 34.53,
+      "persona_similarity": 28.13,
+      "match_reason": "Semantic role & K12 alignment with Achal Saxena (I Build Retail & Institutional Markets) — 35% seed / 28% persona match."
     }
   ],
   "related_companies": [
@@ -163,26 +272,6 @@
       "description": "EDXSO is a complete K12 educational solution company that partners with schools to enhance education to global standards of excellence.",
       "related_contacts": [],
       "source": "LinkedIn Company Index"
-    },
-    {
-      "name": "Edustart Solutions",
-      "company_url": "https://www.linkedin.com/search/results/companies/?keywords=Edustart+Solutions",
-      "category": "School Network / Provider",
-      "description": "Organization of #2 contact Sapna Sukul (Founder).",
-      "related_contacts": [
-        "Sapna Sukul"
-      ],
-      "source": "Top Contact Organization"
-    },
-    {
-      "name": "Credo Learnings",
-      "company_url": "https://www.linkedin.com/search/results/companies/?keywords=Credo+Learnings",
-      "category": "Sales & Education Advisory",
-      "description": "Organization of #3 contact Kavleen Kaur (AI Capability Trainer / Founder).",
-      "related_contacts": [
-        "Kavleen Kaur"
-      ],
-      "source": "Top Contact Organization"
     }
   ],
   "warnings": []
