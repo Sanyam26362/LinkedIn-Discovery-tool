@@ -87,5 +87,58 @@
       "headline": "Enterprise SDR at CloudHR Payroll Solutions | B2B SaaS Sales | Gurugram, India",
       "comment_text": "Great insights on B2B consultative selling!"
     }
+  ],
+  "similar_profiles": [
+    {
+      "rank": 1,
+      "name": "Kavita Krishnan",
+      "profile_url": "https://www.linkedin.com/in/kavita-krishnan-k12-advisor",
+      "headline": "Former Principal & CBSE Academic Advisor | Coaching 18+ Private Schools",
+      "current_role": "Academic Advisor & Former Principal",
+      "organization": "Independent K12 Advisory",
+      "location": "Bengaluru, India",
+      "snippet": "20 years as K12 Principal; now advising school trusts on academic audits and EdTech implementation.",
+      "matched_seed_name": "Dr. Meenakshi Sundaram",
+      "matched_seed_url": "https://www.linkedin.com/in/meenakshi-sundaram-k12",
+      "matched_seed_role": "Former Principal / K12 School Transformation Consultant",
+      "similarity_score": 91.4,
+      "seed_similarity": 93.0,
+      "persona_similarity": 88.4,
+      "match_reason": "Semantic role & K12 alignment with Dr. Meenakshi Sundaram (Former Principal / School Consultant) — 93% seed / 88% persona match."
+    },
+    {
+      "rank": 2,
+      "name": "Harishankar Patel",
+      "profile_url": "https://www.linkedin.com/in/harishankar-patel-school-trust",
+      "headline": "Managing Trustee at Vidya Mandir School Network (11 K12 Campuses)",
+      "current_role": "Managing Trustee",
+      "organization": "Vidya Mandir School Network",
+      "location": "Ahmedabad, India",
+      "snippet": "Overseeing multi-school governance, curriculum modernization, and vendor partnerships across 11 campuses.",
+      "matched_seed_name": "Rajeshwar Singhania",
+      "matched_seed_url": "https://www.linkedin.com/in/rajeshwar-singhania-edu",
+      "matched_seed_role": "Managing Trustee & Chairman",
+      "similarity_score": 88.6,
+      "seed_similarity": 90.0,
+      "persona_similarity": 86.0,
+      "match_reason": "Semantic role & K12 alignment with Rajeshwar Singhania (Managing Trustee) — 90% seed / 86% persona match."
+    },
+    {
+      "rank": 3,
+      "name": "Ritika Malhotra",
+      "profile_url": "https://www.linkedin.com/in/ritika-malhotra-edtech-b2b",
+      "headline": "Founder at EduPartners India | Connecting EdTech Solutions with K12 School Owners",
+      "current_role": "Founder",
+      "organization": "EduPartners India",
+      "location": "Mumbai, India",
+      "snippet": "Building strategic distribution partnerships between K12 education solution providers and private school chains.",
+      "matched_seed_name": "Ananya Chatterjee",
+      "matched_seed_url": "https://www.linkedin.com/in/ananya-chatterjee-edupreneur",
+      "matched_seed_role": "Founder & CEO",
+      "similarity_score": 85.2,
+      "seed_similarity": 87.0,
+      "persona_similarity": 81.9,
+      "match_reason": "Semantic role & K12 alignment with Ananya Chatterjee (Founder & CEO) — 87% seed / 82% persona match."
+    }
   ]
 }

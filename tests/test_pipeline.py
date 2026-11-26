@@ -109,6 +109,12 @@ def test_stage2_serper_format_parses_truncated_titles_and_falls_back_to_apify(mo
     assert posts[1].author_name == "Michael E. Spencer"
 
     monkeypatch.setattr(
+        "src.stage2_discovery._search_apify_linkedin_posts",
+        lambda phrase, token, limit=5: (_ for _ in ()).throw(
+            RuntimeError("Apify LinkedIn Search temporarily unavailable")
+        ),
+    )
+    monkeypatch.setattr(
         "src.stage2_discovery._search_serper_pages",
         lambda phrase, key: (_ for _ in ()).throw(RuntimeError("Serper HTTP 429")),
     )
@@ -127,9 +133,40 @@ def test_stage2_serper_format_parses_truncated_titles_and_falls_back_to_apify(mo
     assert any("fell back to Apify" in w for w in warnings)
 
 
-def test_load_supplied_posts_validates_urls():
+def test_load_supplied_posts_validates_urls(monkeypatch):
+    from src import stage2_discovery
+
     with pytest.raises(ValueError):
         load_supplied_posts(["https://example.com/not-linkedin"], phrase="K12 B2B Sales")
+
+    class FakeRedirectClient:
+        def __init__(self, **kwargs):
+            pass
+
+        def __enter__(self):
+            return self
+
+        def __exit__(self, *args):
+            return False
+
+        def head(self, url):
+            return SimpleNamespace(
+                status_code=200,
+                url="https://www.linkedin.com/posts/k12-edtech-education-share-7505508295126990848-a87b/?utm_source=social_share_send",
+            )
+
+        def get(self, url):
+            return SimpleNamespace(status_code=200, url=url, text="")
+
+    monkeypatch.setattr(stage2_discovery.httpx, "Client", FakeRedirectClient)
+    resolved_posts = load_supplied_posts(["https://lnkd.in/p/gmVGnCHM"], phrase="EDXSO")
+    assert len(resolved_posts) == 1
+    assert resolved_posts[0].post_id == "7505508295126990848"
+    assert (
+        resolved_posts[0].post_url
+        == "https://www.linkedin.com/posts/k12-edtech-education-share-7505508295126990848-a87b"
+    )
+    assert resolved_posts[0].published_date == "2026-09-15"
 
 
 def test_sample_dataset_deduplicates_multi_post_commenters():
@@ -428,6 +465,27 @@ def test_stage5_ranking_and_stage6_export(monkeypatch):
     ranked_fallback = rank_commenters(commenters, analyses, gemini_api_key="test-key", use_cache=False)
     assert len(ranked_fallback) == 2
     assert ranked_fallback[0].name == "Principal A"
+
+    # Verify lexical fallback when Gemini embeddings hit 429 quota limits
+    class QuotaErrorEmbedModels:
+        def embed_content(self, model, contents, config):
+            raise RuntimeError("429 RESOURCE_EXHAUSTED: embed_content_free_tier_requests")
+
+    monkeypatch.setattr(
+        "src.stage5_ranking.genai.Client",
+        lambda **kwargs: SimpleNamespace(models=QuotaErrorEmbedModels()),
+    )
+    quota_warnings: list[str] = []
+    quota_ranked = rank_commenters(
+        commenters,
+        analyses,
+        gemini_api_key="test-key",
+        use_cache=False,
+        warnings_out=quota_warnings,
+    )
+    assert len(quota_ranked) == 2
+    assert quota_ranked[0].name == "Principal A"
+    assert any("lexical persona similarity fallback" in w for w in quota_warnings)
 
     run_res = PipelineRunResult(
         search_phrase="K12 B2B Sales",
@@ -944,3 +1002,408 @@ def test_stage6_save_outputs_writes_utf8_bom_csv(tmp_path):
     resp = client.post("/api/export/csv", json=res.model_dump(mode="json"))
     assert resp.status_code == 200
     assert resp.content.startswith(b"\xef\xbb\xbf")
+
+
+def test_parse_apify_linkedin_posts_dedups_and_prefers_commented():
+    from src.stage2_discovery import _parse_apify_linkedin_posts
+
+    items = [
+        {
+            "type": "comment",
+            "linkedinUrl": "https://www.linkedin.com/in/ignored",
+            "content": "Should skip non-post items",
+        },
+        {
+            "id": "7501001001001001001",
+            "type": "post",
+            "linkedinUrl": "https://www.linkedin.com/posts/author1_post-activity-7501001001001001001-aa11",
+            "author": {"name": "Author Zero Comments"},
+            "postedAt": {"date": "2026-11-20T10:15:00.000Z"},
+            "content": "First result alphabetically but has zero comments.",
+            "engagement": {"id": "7501001001001001001", "likes": 12, "shares": 1},
+        },
+        {
+            "id": "7501001001001001002",
+            "entityId": "7501001001001001002",
+            "type": "post",
+            "linkedinUrl": "https://www.linkedin.com/posts/author2_post-activity-7501001001001001002-bb22?utm_source=test",
+            "author": {"name": "Author Commented A"},
+            "postedAt": {"date": "2026-11-18T08:00:00.000Z"},
+            "content": "Post A with active discussion.",
+            "engagement": {"id": "7501001001001001002", "likes": 30, "comments": 7},
+        },
+        {
+            # Duplicate of the post above via shareLinkedinUrl
+            "id": "7501001001001001002",
+            "type": "post",
+            "linkedinUrl": "https://www.linkedin.com/posts/author2_post-activity-7501001001001001002-bb22",
+            "author": {"name": "Author Commented A"},
+            "postedAt": {"date": "2026-11-18T08:00:00.000Z"},
+            "content": "Duplicate post A.",
+            "engagement": {"comments": 7},
+        },
+        {
+            "id": "7501001001001001003",
+            "type": "post",
+            "linkedinUrl": "https://www.linkedin.com/posts/author3_post-activity-7501001001001001003-cc33",
+            "author": {"name": "Author Commented B"},
+            "postedAt": {"date": "2026-11-15T12:00:00.000Z"},
+            "content": "Post B with 3 comments.",
+            "engagement": {"comments": 3},
+        },
+        {
+            "id": "7501001001001001004",
+            "type": "post",
+            "linkedinUrl": "https://www.linkedin.com/posts/author4_post-activity-7501001001001001004-dd44",
+            "author": {"name": "Author No Comments 2"},
+            "postedAt": {"date": "2026-11-14T12:00:00.000Z"},
+            "content": "Backfill post 2.",
+            "engagement": {"comments": 0},
+        },
+    ]
+
+    parsed = _parse_apify_linkedin_posts(items, phrase="EDXSO", limit=3)
+    assert len(parsed) == 3
+    assert [p.author_name for p in parsed] == [
+        "Author Commented A",
+        "Author Commented B",
+        "Author Zero Comments",
+    ]
+    assert parsed[0].published_date == "2026-11-18"
+    assert parsed[0].post_url == "https://www.linkedin.com/posts/author2_post-activity-7501001001001001002-bb22"
+
+
+def test_search_apify_linkedin_posts_retries_without_posted_limit_and_falls_back(monkeypatch):
+    from src import stage2_discovery
+
+    actor_calls: list[tuple[str, dict]] = []
+
+    def fake_apify_runner(actor_id, payload, token, timeout_secs=240):
+        actor_calls.append((actor_id, dict(payload)))
+        if "postedLimit" in payload:
+            return [
+                {
+                    "id": "7510000000000000001",
+                    "type": "post",
+                    "linkedinUrl": "https://www.linkedin.com/posts/edxso_recent-activity-7510000000000000001-xx11",
+                    "author": {"name": "EDXSO"},
+                    "postedAt": {"date": "2026-10-10T09:00:00Z"},
+                    "content": "Recent EDXSO post.",
+                    "engagement": {"comments": 2},
+                }
+            ]
+        return [
+            {
+                "id": "7510000000000000001",
+                "type": "post",
+                "linkedinUrl": "https://www.linkedin.com/posts/edxso_recent-activity-7510000000000000001-xx11",
+                "author": {"name": "EDXSO"},
+                "postedAt": {"date": "2026-10-10T09:00:00Z"},
+                "content": "Recent EDXSO post.",
+                "engagement": {"comments": 2},
+            },
+            {
+                "id": "7470000000000000002",
+                "type": "post",
+                "linkedinUrl": "https://www.linkedin.com/posts/edxso_older-activity-7470000000000000002-yy22",
+                "author": {"name": "Atul Nischal"},
+                "postedAt": {"date": "2026-06-05T09:00:00Z"},
+                "content": "Older EDXSO post.",
+                "engagement": {"comments": 5},
+            },
+        ]
+
+    monkeypatch.setattr(stage2_discovery, "LINKEDIN_SEARCH_SORT_BY", "relevance")
+    monkeypatch.setattr(stage2_discovery, "LINKEDIN_SEARCH_POSTED_LIMIT", "3months")
+    monkeypatch.setattr(stage2_discovery, "run_apify_actor_and_fetch_items", fake_apify_runner)
+
+    native_posts, provider, warnings = discover_posts_live_with_meta(
+        "EDXSO",
+        apify_token="apify-test",
+        serper_api_key="",
+        limit=2,
+        use_cache=False,
+    )
+    assert provider == "Apify LinkedIn Search"
+    assert warnings == []
+    assert len(actor_calls) == 2
+    assert actor_calls[0][0] == "harvestapi~linkedin-post-search"
+    assert actor_calls[0][1] == {
+        "searchQueries": ["EDXSO"],
+        "sortBy": "relevance",
+        "maxPosts": 25,
+        "scrapeComments": False,
+        "scrapeReactions": False,
+        "postedLimit": "3months",
+    }
+    assert "postedLimit" not in actor_calls[1][1]
+    assert [p.author_name for p in native_posts] == ["Atul Nischal", "EDXSO"]
+
+    # Verify concurrent hybrid Apify + Serper merge filters off-topic noise and deduplicates
+    monkeypatch.setattr(
+        stage2_discovery,
+        "_search_serper_pages",
+        lambda phrase, key: [
+            {
+                "organic": [
+                    {
+                        "link": "https://www.linkedin.com/posts/atulnischal_edxso-activity-7480879493239439360-EG9X",
+                        "title": "Atul Nischal on LinkedIn: EDXSO partner network",
+                        "snippet": "EDXSO builds school partnerships.",
+                    }
+                ]
+            }
+        ],
+    )
+    hybrid_posts, hybrid_provider, hybrid_warnings = discover_posts_live_with_meta(
+        "EDXSO",
+        apify_token="apify-test",
+        serper_api_key="serper-test",
+        limit=3,
+        use_cache=False,
+    )
+    assert hybrid_provider == "Apify + Serper.dev"
+    assert hybrid_warnings == []
+    assert len(hybrid_posts) == 3
+
+    # Verify automatic fallback to Serper.dev on Apify 402 quota error
+    monkeypatch.setattr(
+        stage2_discovery,
+        "_search_apify_linkedin_posts",
+        lambda phrase, token, limit=5: (_ for _ in ()).throw(
+            RuntimeError("Apify usage quota or credit limit reached (402)")
+        ),
+    )
+    serper_posts, serper_provider, serper_warnings = discover_posts_live_with_meta(
+        "EDXSO",
+        apify_token="apify-test",
+        serper_api_key="serper-test",
+        limit=1,
+        use_cache=False,
+    )
+    assert serper_provider == "Serper.dev"
+    assert len(serper_posts) == 1
+    assert any("fell back to Serper.dev" in w for w in serper_warnings)
+
+
+def test_parse_apify_linkedin_posts_filters_noise_and_sorts_by_comment_count():
+    from src.stage2_discovery import _parse_apify_linkedin_posts
+
+    items = [
+        {
+            "id": "7528868454934917120",
+            "type": "post",
+            "linkedinUrl": "https://www.linkedin.com/posts/veryable_floor-activity-7528868454934917120-9p0k",
+            "author": {"name": "Veryable"},
+            "postedAt": {"date": "2026-11-18T08:00:00Z"},
+            "content": "Same-day floor reinforcement for plant managers.",
+            "engagement": {"comments": 12, "likes": 40},
+        },
+        {
+            "id": "7505508295839981568",
+            "type": "post",
+            "linkedinUrl": "https://www.linkedin.com/posts/edxso_k12-activity-7505508295839981568--K-p",
+            "author": {"name": "EDXSO"},
+            "postedAt": {"date": "2026-09-15T08:00:00Z"},
+            "content": "EDXSO is building a K-12 Partner Network.",
+            "engagement": {"comments": 2, "likes": 5},
+        },
+        {
+            "id": "7505288663103336448",
+            "type": "post",
+            "linkedinUrl": "https://www.linkedin.com/posts/anisha_edxso-activity-7505288663103336448-8BG9",
+            "author": {"name": "Anisha Verma"},
+            "postedAt": {"date": "2026-09-14T08:00:00Z"},
+            "content": "EDXSO Partner Network for school leaders.",
+            "engagement": {"comments": 9, "likes": 15},
+        },
+    ]
+    parsed = _parse_apify_linkedin_posts(items, phrase="EDXSO", limit=5)
+    assert [p.author_name for p in parsed] == ["Anisha Verma", "EDXSO"]
+
+
+def test_pipeline_runs_similar_profiles_only_for_supplied_urls(monkeypatch):
+    from src import pipeline
+
+    sample_post = DiscoveredPost(
+        post_id="7505288663103336448",
+        post_url="https://www.linkedin.com/posts/anisha_edxso-activity-7505288663103336448-8BG9",
+        author_name="Anisha Verma",
+        snippet="EDXSO Partner Network",
+        source_mode=DataSourceMode.LIVE_API,
+    )
+    sample_commenter = DeduplicatedCommenter(
+        profile_url="https://www.linkedin.com/in/ganeshl",
+        name="Ganesh L",
+        headline="Founder @ Educational Advisory",
+        commented_posts=[
+            PostTrace(
+                post_url=sample_post.post_url,
+                post_author="Anisha Verma",
+                comment_snippet="EDXSO PARTNER",
+            )
+        ],
+    )
+    sample_analysis = {
+        sample_commenter.profile_url: ProfileAnalysis(
+            current_role="Founder",
+            organization="Educational Advisory",
+            location="Bengaluru",
+            school_ecosystem_indicators=[EcosystemIndicator.CONSULTANT_ADVISOR],
+            llm_fit_score=85.0,
+            match_explanation="Advises K12 schools.",
+        )
+    }
+    sample_ranked = [
+        RankedInfluencer(
+            rank=1,
+            name="Ganesh L",
+            profile_url="https://www.linkedin.com/in/ganeshl",
+            current_role="Founder",
+            organization="Educational Advisory",
+            location="Bengaluru",
+            school_ecosystem_indicators=["School/Education Consultant"],
+            embedding_similarity=85.0,
+            llm_fit_score=85.0,
+            engagement_bonus=0.0,
+            final_relevance_score=85.0,
+            match_explanation="Advises K12 schools.",
+            commented_post_count=1,
+            commented_posts=sample_commenter.commented_posts,
+        )
+    ]
+
+    similar_calls = {"n": 0}
+
+    def fake_discover_similar(**kwargs):
+        similar_calls["n"] += 1
+        return [], []
+
+    monkeypatch.setattr(pipeline, "discover_posts_live_with_meta", lambda *a, **kw: ([sample_post], "Apify + Serper.dev", []))
+    monkeypatch.setattr(pipeline, "discover_related_companies", lambda *a, **kw: [])
+    monkeypatch.setattr(pipeline, "extract_and_deduplicate_commenters_with_meta", lambda **kw: ([sample_commenter], []))
+    monkeypatch.setattr(pipeline, "analyze_all_commenters_with_meta", lambda *a, **kw: (sample_analysis, "test-llm", []))
+    monkeypatch.setattr(pipeline, "rank_commenters", lambda *a, **kw: sample_ranked)
+    monkeypatch.setattr(pipeline, "discover_similar_profiles", fake_discover_similar)
+
+    live_res = pipeline.run_pipeline(raw_phrase="EDXSO", mode=DataSourceMode.LIVE_API, use_cache=False)
+    assert live_res.similar_profiles == []
+    assert similar_calls["n"] == 0
+
+    demo_res = pipeline.run_pipeline(raw_phrase="K12 B2B Sales", mode=DataSourceMode.TEST_DATASET, use_cache=False)
+    assert demo_res.similar_profiles == []
+    assert similar_calls["n"] == 0
+
+    url_res = pipeline.run_pipeline(
+        raw_phrase="EDXSO",
+        mode=DataSourceMode.SUPPLIED_URLS,
+        supplied_urls=[sample_post.post_url],
+        use_cache=False,
+    )
+    assert url_res.source_mode == DataSourceMode.SUPPLIED_URLS
+    assert similar_calls["n"] == 1
+
+
+def test_discover_similar_profiles_and_api_endpoint(monkeypatch):
+    from src import similar_profiles
+
+    seed = RankedInfluencer(
+        rank=1,
+        name="Dr. Meenakshi Sundaram",
+        profile_url="https://www.linkedin.com/in/meenakshi-sundaram-k12",
+        current_role="Former Principal | K12 School Transformation Consultant",
+        organization="Not publicly listed",
+        location="Bengaluru",
+        school_ecosystem_indicators=["Former Principal/Director", "School/Education Consultant"],
+        embedding_similarity=90.0,
+        llm_fit_score=92.0,
+        engagement_bonus=5.0,
+        final_relevance_score=95.0,
+        match_explanation="Advises 25+ CBSE and IB schools.",
+        commented_post_count=2,
+        commented_posts=[],
+    )
+
+    queries = similar_profiles.build_lookalike_queries([seed], phrase="K12 B2B Sales", max_queries=4)
+    assert len(queries) >= 1
+    assert all("Not publicly listed" not in q for q, _ in queries)
+    assert all(q.startswith("site:linkedin.com/in") for q, _ in queries)
+
+    monkeypatch.setattr(
+        similar_profiles,
+        "_search_serper_profiles",
+        lambda qs, key: [
+            {
+                "organic": [
+                    {
+                        # Should be excluded because this URL is already the seed commenter
+                        "title": "Dr. Meenakshi Sundaram - Former Principal | LinkedIn",
+                        "link": "https://www.linkedin.com/in/meenakshi-sundaram-k12/?trk=abc",
+                        "snippet": "Same seed person",
+                    },
+                    {
+                        "title": "Kavita Krishnan - Former Principal & CBSE Advisor | LinkedIn",
+                        "link": "https://in.linkedin.com/in/kavita-krishnan-k12",
+                        "snippet": "20 years as K12 Principal advising CBSE school trusts.",
+                    },
+                    {
+                        "title": "Rohan Kumar - Cloud DevOps Engineer | LinkedIn",
+                        "link": "https://www.linkedin.com/in/rohan-devops",
+                        "snippet": "Kubernetes and AWS microservices.",
+                    },
+                ]
+            }
+            for _ in qs
+        ],
+    )
+
+    class FakeLookalikeEmbed:
+        def embed_content(self, model, contents, config):
+            vecs = []
+            for text in contents:
+                if "Principal" in text or "Ideal" in text:
+                    vecs.append(SimpleNamespace(values=[0.95, 0.05]))
+                else:
+                    vecs.append(SimpleNamespace(values=[0.1, 0.99]))
+            return SimpleNamespace(embeddings=vecs)
+
+    monkeypatch.setattr(
+        similar_profiles.genai,
+        "Client",
+        lambda **kwargs: SimpleNamespace(models=FakeLookalikeEmbed()),
+    )
+
+    lookalikes, warnings = similar_profiles.discover_similar_profiles(
+        phrase="K12 B2B Sales",
+        seed_influencers=[seed],
+        exclude_urls={seed.profile_url},
+        serper_api_key="serper-test",
+        gemini_api_key="gemini-test",
+        use_cache=False,
+        limit=5,
+    )
+    assert warnings == []
+    assert [p.name for p in lookalikes] == ["Kavita Krishnan", "Rohan Kumar"]
+    assert lookalikes[0].similarity_score > lookalikes[1].similarity_score
+    assert lookalikes[0].matched_seed_name == "Dr. Meenakshi Sundaram"
+
+    client = TestClient(api_app)
+    resp = client.post(
+        "/api/similar",
+        json={
+            "phrase": "K12 B2B Sales",
+            "seed_influencers": [seed.model_dump(mode="json")],
+            "exclude_urls": [seed.profile_url],
+            "limit": 5,
+            "use_cache": False,
+            "serper_api_key": "serper-test",
+            "gemini_api_key": "gemini-test",
+        },
+    )
+    assert resp.status_code == 200
+    body = resp.json()
+    assert len(body["similar_profiles"]) == 2
+    assert body["similar_profiles"][0]["name"] == "Kavita Krishnan"
+
+    bad_resp = client.post("/api/similar", json={"phrase": "K12 B2B Sales", "seed_influencers": []})
+    assert bad_resp.status_code == 400
