@@ -3,6 +3,8 @@ import type {
   DiscoveryRequestPayload,
   PipelineRunResult,
   ProgressEvent,
+  RankedInfluencer,
+  SimilarProfile,
 } from "@/types/discovery";
 
 export const API_BASE_URL =
@@ -93,6 +95,30 @@ export async function runDiscoveryStream(
   }
 
   return finalResult;
+}
+
+export async function fetchSimilarProfiles(params: {
+  phrase: string;
+  seed_influencers: RankedInfluencer[];
+  exclude_urls: string[];
+  limit?: number;
+  use_cache: boolean;
+  serper_api_key?: string;
+  gemini_api_key?: string;
+}): Promise<{ similar_profiles: SimilarProfile[]; warnings: string[] }> {
+  const res = await fetch(`${API_BASE_URL}/api/similar`, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify(params),
+  });
+  const data = await res.json().catch(() => ({}));
+  if (!res.ok) {
+    throw new Error(data.detail || `Similar profiles search failed (${res.status})`);
+  }
+  return {
+    similar_profiles: (data.similar_profiles ?? []) as SimilarProfile[],
+    warnings: (data.warnings ?? []) as string[],
+  };
 }
 
 export async function downloadExport(

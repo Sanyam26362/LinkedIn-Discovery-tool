@@ -5,8 +5,10 @@ import {
   Bookmark,
   Check,
   Copy,
+  Loader2,
   MapPin,
   Search,
+  Users,
 } from "lucide-react";
 import { LinkedInIcon } from "@/components/LinkedInIcon";
 import type { RankedInfluencer } from "@/types/discovery";
@@ -15,6 +17,8 @@ interface InfluencersWorkbenchProps {
   influencers: RankedInfluencer[];
   focusedPostUrl: string | null;
   onClearPostFocus: () => void;
+  onFindSimilar?: (inf: RankedInfluencer) => void;
+  findingSimilarUrl?: string | null;
 }
 
 const INDICATOR_ORDER = [
@@ -50,6 +54,8 @@ export function InfluencersWorkbench({
   influencers,
   focusedPostUrl,
   onClearPostFocus,
+  onFindSimilar,
+  findingSimilarUrl,
 }: InfluencersWorkbenchProps) {
   const [query, setQuery] = useState("");
   const [activeIndicator, setActiveIndicator] = useState<string>("ALL");
@@ -378,15 +384,37 @@ export function InfluencersWorkbench({
                 ))}
               </div>
 
-              <a
-                href={activeInfluencer.profile_url}
-                target="_blank"
-                rel="noreferrer"
-                className="inline-flex items-center justify-center gap-2 px-3 py-1.5 rounded border border-[#0A66C2]/30 bg-[#0A66C2]/5 hover:bg-[#0A66C2]/10 text-xs font-semibold text-[#0A66C2] transition-colors w-full"
-              >
-                <LinkedInIcon className="w-4 h-4 shrink-0" />
-                <span>Open LinkedIn Profile</span>
-              </a>
+              <div className={`grid grid-cols-1 ${onFindSimilar ? "sm:grid-cols-2" : ""} gap-2`}>
+                <a
+                  href={activeInfluencer.profile_url}
+                  target="_blank"
+                  rel="noreferrer"
+                  className="inline-flex items-center justify-center gap-2 px-3 py-1.5 rounded border border-[#0A66C2]/30 bg-[#0A66C2]/5 hover:bg-[#0A66C2]/10 text-xs font-semibold text-[#0A66C2] transition-colors"
+                >
+                  <LinkedInIcon className="w-4 h-4 shrink-0" />
+                  <span>Open LinkedIn Profile</span>
+                </a>
+
+                {onFindSimilar && (
+                  <button
+                    type="button"
+                    disabled={findingSimilarUrl === activeInfluencer.profile_url}
+                    onClick={() => onFindSimilar(activeInfluencer)}
+                    className="inline-flex items-center justify-center gap-1.5 px-3 py-1.5 rounded border border-outline-border bg-surface hover:bg-surface-ground text-xs font-semibold text-on-surface disabled:opacity-60 transition-colors cursor-pointer"
+                  >
+                    {findingSimilarUrl === activeInfluencer.profile_url ? (
+                      <Loader2 className="w-3.5 h-3.5 animate-spin text-primary shrink-0" />
+                    ) : (
+                      <Users className="w-3.5 h-3.5 text-primary shrink-0" />
+                    )}
+                    <span>
+                      {findingSimilarUrl === activeInfluencer.profile_url
+                        ? "Finding Similar..."
+                        : "Find Similar Profiles"}
+                    </span>
+                  </button>
+                )}
+              </div>
             </div>
 
             <div className="h-px bg-outline-border" />

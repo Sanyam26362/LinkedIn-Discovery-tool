@@ -7,9 +7,10 @@ import {
   type RuntimeCredentialOverrides,
 } from "@/components/CredentialsModal";
 import { DiscoveredPostsGrid } from "@/components/DiscoveredPostsGrid";
-import { DiscoveryToolbar } from "@/components/DiscoveryToolbar";
+import { DiscoveryToolbar, type WizardStep } from "@/components/DiscoveryToolbar";
 import { HeaderBar } from "@/components/HeaderBar";
 import { InfluencersWorkbench } from "@/components/InfluencersWorkbench";
+import { UrlComparisonWorkbench } from "@/components/UrlComparisonWorkbench";
 import {
   API_BASE_URL,
   downloadExport,
@@ -24,13 +25,14 @@ import type {
   ProgressEvent,
 } from "@/types/discovery";
 
-type ActiveTab = "contacts" | "posts";
+type ActiveTab = "contacts" | "posts" | "url_comparison";
 
 export default function HomePage() {
   const [config, setConfig] = useState<ApiConfigResponse | null>(null);
   const [result, setResult] = useState<PipelineRunResult | null>(null);
+  const [isInitialLoading, setIsInitialLoading] = useState(true);
+  const [wizardStep, setWizardStep] = useState<WizardStep>(1);
   const [phrase, setPhrase] = useState("K12 B2B Sales");
-  const [mode, setMode] = useState<DataSourceMode>("live_api");
   const [suppliedUrlsText, setSuppliedUrlsText] = useState("");
   const [useCache, setUseCache] = useState(true);
   const [isRunning, setIsRunning] = useState(false);
@@ -59,6 +61,7 @@ export default function HomePage() {
         setUseCache(cfg.defaults.use_cache);
         if (latest) {
           setResult(latest);
+          setActiveTab(latest.source_mode === "supplied_urls" ? "url_comparison" : "contacts");
         }
       } catch (err) {
         if (!active) return;
@@ -67,6 +70,8 @@ export default function HomePage() {
             ? `Backend API unreachable (${err.message}). Start 'python api.py' on port 8000.`
             : "Backend API unreachable. Start 'python api.py' on port 8000."
         );
+      } finally {
+        if (active) setIsInitialLoading(false);
       }
     })();
     return () => {
@@ -74,17 +79,24 @@ export default function HomePage() {
     };
   }, []);
 
-  const handleRunDiscovery = async () => {
+  const executeDiscovery = async (requestedMode?: DataSourceMode) => {
     setErrorMsg(null);
     setFocusedPostUrl(null);
+    setWizardStep(3);
     setIsRunning(true);
     setProgress({ step: 1, total_steps: 6, message: "Starting search..." });
 
     try {
-      const suppliedUrls = suppliedUrlsText
-        .split(/\r?\n/)
-        .map((u) => u.trim())
-        .filter(Boolean);
+      const suppliedUrls =
+        requestedMode === "test_dataset"
+          ? []
+          : suppliedUrlsText
+              .split(/\r?\n/)
+              .map((u) => u.trim())
+              .filter(Boolean);
+
+      const effectiveMode: DataSourceMode =
+        requestedMode ?? (suppliedUrls.length > 0 ? "supplied_urls" : "live_api");
 
       const parsedMaxComments = overrides.max_comments_per_post.trim()
         ? Number.parseInt(overrides.max_comments_per_post.trim(), 10)
@@ -93,7 +105,7 @@ export default function HomePage() {
       const nextResult = await runDiscoveryStream(
         {
           phrase,
-          mode,
+          mode: effectiveMode,
           supplied_urls: suppliedUrls,
           use_cache: useCache,
           max_comments_per_post: Number.isFinite(parsedMaxComments)
@@ -107,7 +119,7 @@ export default function HomePage() {
         (ev) => setProgress(ev)
       );
       setResult(nextResult);
-      setActiveTab("contacts");
+      setActiveTab(nextResult.source_mode === "supplied_urls" ? "url_comparison" : "contacts");
     } catch (err) {
       setErrorMsg(err instanceof Error ? err.message : "Pipeline run failed.");
     } finally {
@@ -127,6 +139,8 @@ export default function HomePage() {
     }
   };
 
+  const isUrlModeResult = result?.source_mode === "supplied_urls";
+
   return (
     <div className="min-h-screen flex flex-col bg-surface-ground">
       <HeaderBar
@@ -140,10 +154,10 @@ export default function HomePage() {
 
       <main className="flex-1 max-w-[1440px] w-full mx-auto px-4 sm:px-6 py-4 space-y-4">
         <DiscoveryToolbar
+          step={wizardStep}
+          onStepChange={setWizardStep}
           phrase={phrase}
           onPhraseChange={setPhrase}
-          mode={mode}
-          onModeChange={setMode}
           suppliedUrlsText={suppliedUrlsText}
           onSuppliedUrlsChange={setSuppliedUrlsText}
           useCache={useCache}
@@ -151,7 +165,8 @@ export default function HomePage() {
           isRunning={isRunning}
           progress={progress}
           result={result}
-          onRun={handleRunDiscovery}
+          onRun={() => executeDiscovery()}
+          onRunDemo={() => executeDiscovery("test_dataset")}
         />
 
         {errorMsg && (
@@ -165,8 +180,9 @@ export default function HomePage() {
           <div className="rounded-lg border border-primary/25 bg-primary-container/30 px-3.5 py-2 flex items-center gap-2 text-xs text-on-primary-container">
             <Info className="w-4 h-4 text-primary shrink-0" />
             <span>
-              <strong>Demo Dataset Mode:</strong> Showing clearly labelled sample fixture (
-              <code>data/sample_dataset.json</code>) scored live.
+              <strong>Demo Data Mode:</strong> Showing 5 pre-saved sample LinkedIn posts &amp;
+              commenters from <code>data/sample_dataset.json</code> (no live LinkedIn scraping),
+              scored live by AI ranking.
             </span>
           </div>
         )}
@@ -182,61 +198,117 @@ export default function HomePage() {
         ))}
 
         {result ? (
-          <>
-            <div className="border-b border-outline-border flex items-center gap-6">
-              <button
-                type="button"
-                onClick={() => setActiveTab("contacts")}
-                className={`pb-2.5 text-xs font-semibold border-b-2 transition-colors cursor-pointer ${
-                  activeTab === "contacts"
-                    ? "border-primary text-primary"
-                    : "border-transparent text-on-surface-variant hover:text-on-surface"
-                }`}
-              >
-                Matching Contacts ({result.total_unique_commenters})
-              </button>
+          isUrlModeResult ? (
+            <>
+              <div className="border-b border-outline-border flex items-center gap-6">
+                <button
+                  type="button"
+                  onClick={() => setActiveTab("url_comparison")}
+                  className={`pb-2.5 text-xs font-semibold border-b-2 transition-colors cursor-pointer ${
+                    activeTab !== "posts"
+                      ? "border-primary text-primary"
+                      : "border-transparent text-on-surface-variant hover:text-on-surface"
+                  }`}
+                >
+                  Commenter People ({result.total_unique_commenters}) &amp; Similar Profiles (
+                  {result.similar_profiles?.length ?? 0})
+                </button>
 
-              <button
-                type="button"
-                onClick={() => setActiveTab("posts")}
-                className={`pb-2.5 text-xs font-semibold border-b-2 transition-colors cursor-pointer ${
-                  activeTab === "posts"
-                    ? "border-primary text-primary"
-                    : "border-transparent text-on-surface-variant hover:text-on-surface"
-                }`}
-              >
-                Source Posts ({result.total_posts})
-              </button>
-            </div>
+                <button
+                  type="button"
+                  onClick={() => setActiveTab("posts")}
+                  className={`pb-2.5 text-xs font-semibold border-b-2 transition-colors cursor-pointer ${
+                    activeTab === "posts"
+                      ? "border-primary text-primary"
+                      : "border-transparent text-on-surface-variant hover:text-on-surface"
+                  }`}
+                >
+                  Source Posts ({result.total_posts})
+                </button>
+              </div>
 
-            {activeTab === "contacts" ? (
-              <InfluencersWorkbench
-                key={result.generated_at_utc}
-                influencers={result.ranked_influencers}
-                focusedPostUrl={focusedPostUrl}
-                onClearPostFocus={() => setFocusedPostUrl(null)}
-              />
-            ) : (
-              <DiscoveredPostsGrid
-                posts={result.posts}
-                influencers={result.ranked_influencers}
-                focusedPostUrl={focusedPostUrl}
-                onSelectPostForFilter={(url) => {
-                  setFocusedPostUrl((prev) => (prev === url ? null : url));
-                  setActiveTab("contacts");
-                }}
-              />
-            )}
-          </>
+              {activeTab === "posts" ? (
+                <DiscoveredPostsGrid
+                  posts={result.posts}
+                  influencers={result.ranked_influencers}
+                  focusedPostUrl={focusedPostUrl}
+                  onSelectPostForFilter={(url) => {
+                    setFocusedPostUrl((prev) => (prev === url ? null : url));
+                    setActiveTab("url_comparison");
+                  }}
+                />
+              ) : (
+                <UrlComparisonWorkbench
+                  key={result.generated_at_utc}
+                  influencers={result.ranked_influencers}
+                  similarProfiles={result.similar_profiles ?? []}
+                  focusedPostUrl={focusedPostUrl}
+                  onClearPostFocus={() => setFocusedPostUrl(null)}
+                />
+              )}
+            </>
+          ) : (
+            <>
+              <div className="border-b border-outline-border flex items-center gap-6">
+                <button
+                  type="button"
+                  onClick={() => setActiveTab("contacts")}
+                  className={`pb-2.5 text-xs font-semibold border-b-2 transition-colors cursor-pointer ${
+                    activeTab !== "posts"
+                      ? "border-primary text-primary"
+                      : "border-transparent text-on-surface-variant hover:text-on-surface"
+                  }`}
+                >
+                  Matching Contacts ({result.total_unique_commenters})
+                </button>
+
+                <button
+                  type="button"
+                  onClick={() => setActiveTab("posts")}
+                  className={`pb-2.5 text-xs font-semibold border-b-2 transition-colors cursor-pointer ${
+                    activeTab === "posts"
+                      ? "border-primary text-primary"
+                      : "border-transparent text-on-surface-variant hover:text-on-surface"
+                  }`}
+                >
+                  Source Posts ({result.total_posts})
+                </button>
+              </div>
+
+              {activeTab === "posts" ? (
+                <DiscoveredPostsGrid
+                  posts={result.posts}
+                  influencers={result.ranked_influencers}
+                  focusedPostUrl={focusedPostUrl}
+                  onSelectPostForFilter={(url) => {
+                    setFocusedPostUrl((prev) => (prev === url ? null : url));
+                    setActiveTab("contacts");
+                  }}
+                />
+              ) : (
+                <InfluencersWorkbench
+                  key={result.generated_at_utc}
+                  influencers={result.ranked_influencers}
+                  focusedPostUrl={focusedPostUrl}
+                  onClearPostFocus={() => setFocusedPostUrl(null)}
+                />
+              )}
+            </>
+          )
+        ) : isInitialLoading ? (
+          <div className="bg-surface rounded-lg border border-outline-border p-10 text-center text-xs text-on-surface-variant">
+            Loading workspace...
+          </div>
         ) : (
-          <div className="bg-surface rounded-lg border border-outline-border p-10 text-center space-y-2">
+          <div className="bg-surface rounded-lg border border-outline-border p-10 text-center space-y-2.5">
             <h2 className="font-display font-semibold text-sm text-on-surface">
-              Find school decision-makers and education contacts
+              Find school decision-makers and education contacts in 3 steps
             </h2>
-            <p className="text-xs text-on-surface-variant max-w-md mx-auto">
-              Enter a topic phrase above (such as <strong>K12 B2B Sales</strong>) and click{" "}
-              <strong>Find Contacts</strong> to discover relevant LinkedIn posts, people commenting
-              on them, and related organizations.
+            <p className="text-xs text-on-surface-variant max-w-lg mx-auto leading-relaxed">
+              <strong>1.</strong> Type a topic or company name above and press{" "}
+              <strong>Enter</strong>. <strong>2.</strong> Optionally paste LinkedIn post URL(s)
+              (to also get <strong>Similar Profiles</strong>), or leave blank. <strong>3.</strong>{" "}
+              Press <strong>Enter</strong> to view ranked contacts.
             </p>
           </div>
         )}

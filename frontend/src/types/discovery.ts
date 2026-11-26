@@ -41,6 +41,24 @@ export interface RankedInfluencer {
   commented_posts: PostTrace[];
 }
 
+export interface SimilarProfile {
+  rank: number;
+  name: string;
+  profile_url: string;
+  headline: string;
+  current_role: string;
+  organization: string;
+  location: string;
+  snippet: string;
+  matched_seed_name: string;
+  matched_seed_url: string;
+  matched_seed_role: string;
+  similarity_score: number;
+  seed_similarity: number;
+  persona_similarity: number;
+  match_reason: string;
+}
+
 export interface PipelineRunResult {
   search_phrase: string;
   generated_at_utc: string;
@@ -53,6 +71,7 @@ export interface PipelineRunResult {
   total_unique_commenters: number;
   posts: DiscoveredPost[];
   ranked_influencers: RankedInfluencer[];
+  similar_profiles: SimilarProfile[];
   related_companies: RelatedCompany[];
   warnings: string[];
 }
